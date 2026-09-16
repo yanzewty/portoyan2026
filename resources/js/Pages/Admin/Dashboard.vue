@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 
+// Menerima data props dari backend Laravel (profil dan statistik data)
 defineProps({
     profile: { type: Object, default: () => ({}) },
     totalMessages: { type: Number, default: 0 },
@@ -9,9 +10,11 @@ defineProps({
     totalProjects: { type: Number, default: 0 }
 });
 
+// State untuk mengatur status sidebar (buka/tutup) dan animasi muat halaman
 const isSidebarCollapsed = ref(false);
 const isLoaded = ref(false);
 
+// Menjalankan animasi transisi masuk saat komponen selesai dimuat
 onMounted(() => {
     setTimeout(() => { isLoaded.value = true; }, 100);
 });
@@ -22,7 +25,7 @@ onMounted(() => {
 
     <div class="app-wrapper" :class="{ 'sidebar-collapsed': isSidebarCollapsed }">
         
-        <!-- SIDEBAR -->
+        <!-- SIDEBAR NAVIGASI -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="brand">
@@ -34,6 +37,7 @@ onMounted(() => {
                 </div>
             </div>
 
+            <!-- Tombol toggle untuk menciutkan/memperluas sidebar -->
             <button class="collapse-btn" @click="isSidebarCollapsed = !isSidebarCollapsed">
                 <i class='bx' :class="isSidebarCollapsed ? 'bx-menu' : 'bx-arrow-to-left'"></i>
                 <span class="collapse-text">Menu</span>
@@ -84,6 +88,7 @@ onMounted(() => {
                 </Link>
             </nav>
 
+            <!-- Tombol Logout -->
             <div class="sidebar-bottom">
                 <Link href="/logout" method="post" as="button" class="nav-item logout-btn">
                     <i class='bx bx-log-out'></i> 
@@ -93,14 +98,13 @@ onMounted(() => {
             </div>
         </aside>
 
-        
+        <!-- KONTEN UTAMA -->
         <main class="main-content">
-            
             <button class="mobile-toggle" @click="isSidebarCollapsed = !isSidebarCollapsed">
                 <i class='bx bx-menu-alt-left'></i>
             </button>
 
-            <!-- Header & Notifikasi -->
+            <!-- Header Halaman & Indikator Pesan -->
             <header class="dash-header" :class="{'stagger-in': isLoaded}" style="--delay: 1">
                 <div class="header-text">
                     <h1>Selamat Datang, Admin Akamsi</h1>
@@ -117,18 +121,16 @@ onMounted(() => {
                 </Link>
             </header>
 
-           
+            <!-- Kotak Statistik Atas -->
             <div class="top-stats-grid">
                 <div class="hero-purple-card" :class="{'stagger-in': isLoaded}" style="--delay: 2">
                     <div class="hero-top">
                         <span class="hero-label">Portofolio</span>
                         <div class="hero-icon-circle"><i class='bx bx-globe'></i></div>
                     </div>
-
                     <div class="hero-mid">
                         <h2>Hallo Admin</h2>
                     </div>
-
                     <div class="hero-bottom">
                         <a href="/" target="_blank" class="btn-glass">
                             Lihat Website <i class='bx bx-right-arrow-alt'></i>
@@ -147,10 +149,9 @@ onMounted(() => {
                         <div class="stat-trend trend-up">Belum dibaca</div>
                     </div>
                 </Link>
-
             </div>
 
-            <!-- Akses Cepat Bawah -->
+            <!-- Bagian Akses Cepat Menu Admin -->
             <div class="content-section" :class="{'stagger-in': isLoaded}" style="--delay: 4">
                 <div class="section-title">
                     <h4>Akses Cepat Pengelolaan</h4>
@@ -183,25 +184,31 @@ onMounted(() => {
                     </Link>
                 </div>
             </div>
-
+            
         </main>
+
     </div>
 </template>
 
 <style scoped>
 
 .app-wrapper {
-    --bg-app: #F8FAFC; --bg-sidebar: #FFFFFF; --bg-card: #FFFFFF;
-    --text-main: #0F172A; --text-muted: #64748B; --border-soft: #F1F5F9;
-    --primary: #7C3AED; --primary-light: #F5F3FF;
+    --bg-app: #F8FAFC;
+    --bg-sidebar: #FFFFFF;
+    --bg-card: #FFFFFF;
+    --text-main: #0F172A;
+    --text-muted: #64748B;
+    --border-soft: #F1F5F9;
+    --primary: #7C3AED;
+    --primary-light: #F5F3FF;
     --shadow-soft: 0 10px 40px -10px rgba(0, 0, 0, 0.05);
-    
     display: flex; 
     height: 100vh; 
     width: 100vw;
     overflow: hidden; 
     background-color: var(--bg-app);
-    color: var(--text-main); font-family: 'Inter', sans-serif;
+    color: var(--text-main); 
+    font-family: 'Inter', sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -213,21 +220,10 @@ onMounted(() => {
     }
 }
 
-
-.stagger-in {
-    opacity: 0; transform: translateY(15px);
-    animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    animation-delay: calc(var(--delay) * 0.05s);
-}
+.stagger-in { opacity: 0; transform: translateY(15px); animation: slideUpFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: calc(var(--delay) * 0.05s); }
 @keyframes slideUpFade { to { opacity: 1; transform: translateY(0); } }
 
-
-.sidebar {
-    width: 250px; background-color: var(--bg-sidebar); border-right: 1px solid var(--border-soft);
-    display: flex; flex-direction: column; height: 100vh;
-    transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1); z-index: 100;
-    overflow: hidden;
-}
+.sidebar { width: 250px; background-color: var(--bg-sidebar); border-right: 1px solid var(--border-soft); display: flex; flex-direction: column; height: 100vh; transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1); z-index: 100; overflow: hidden; }
 .sidebar-header { padding: 25px 20px 10px 20px; flex-shrink: 0; }
 .brand { display: flex; align-items: center; gap: 12px; white-space: nowrap; overflow: hidden;}
 .brand-icon { min-width: 36px; height: 36px; background: var(--primary); color: #fff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
@@ -235,34 +231,14 @@ onMounted(() => {
 .brand-name { font-weight: 800; font-size: 15px; color: var(--text-main); font-family: 'Sora', sans-serif; }
 .brand-sub { font-size: 10px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px;}
 
-.collapse-btn {
-    margin: 0 20px 15px 20px; padding: 10px; display: flex; align-items: center; gap: 12px;
-    background: transparent; border: 1px solid var(--border-soft); border-radius: 10px;
-    color: var(--text-muted); font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
-    cursor: pointer; transition: all 0.3s ease; white-space: nowrap; overflow: hidden; flex-shrink: 0;
-}
+.collapse-btn { margin: 0 20px 15px 20px; padding: 10px; display: flex; align-items: center; gap: 12px; background: transparent; border: 1px solid var(--border-soft); border-radius: 10px; color: var(--text-muted); font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; overflow: hidden; flex-shrink: 0; }
 .collapse-btn:hover { background: var(--border-soft); color: var(--text-main); }
 .collapse-btn i { font-size: 18px; min-width: 18px; text-align: center;}
-
 .menu-label { font-size: 10px; font-weight: 700; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 10px; padding-left: 25px; white-space: nowrap; transition: opacity 0.3s; flex-shrink: 0; }
 
-/* HILANGKAN SCROLLBAR DI SIDEBAR, TAPI TETAP BISA DI-SCROLL PAKAI MOUSE */
-.sidebar-nav { 
-    padding: 0 15px; display: flex; flex-direction: column; gap: 4px; flex: 1; 
-    overflow-y: auto; overflow-x: hidden;
-    scrollbar-width: none; 
-    -ms-overflow-style: none; 
-}
+.sidebar-nav { padding: 0 15px; display: flex; flex-direction: column; gap: 4px; flex: 1; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; -ms-overflow-style: none; }
 .sidebar-nav::-webkit-scrollbar { display: none; } 
-
-.nav-item {
-    display: flex; align-items: center; gap: 12px; padding: 10px 14px; position: relative;
-    border-radius: 10px; color: var(--text-muted); text-decoration: none;
-    font-weight: 500; font-size: 13px; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-    border: none; background: transparent; cursor: pointer; width: 100%; white-space: nowrap;
-    animation: slideRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    opacity: 0; transform: translateX(-10px); animation-delay: calc(var(--i) * 0.04s);
-}
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; position: relative; border-radius: 10px; color: var(--text-muted); text-decoration: none; font-weight: 500; font-size: 13px; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); border: none; background: transparent; cursor: pointer; width: 100%; white-space: nowrap; animation: slideRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateX(-10px); animation-delay: calc(var(--i) * 0.04s); }
 @keyframes slideRight { to { opacity: 1; transform: translateX(0); } }
 .nav-item i { font-size: 18px; min-width: 18px; text-align: center; transition: 0.3s;}
 .nav-item:hover { background-color: var(--bg-app); color: var(--text-main); transform: translateX(5px); }
@@ -272,50 +248,24 @@ onMounted(() => {
 .sidebar-bottom { padding: 15px; margin-top: auto; border-top: 1px solid var(--border-soft); flex-shrink: 0; }
 .logout-btn:hover { background: rgba(239, 68, 68, 0.1); color: #EF4444; }
 
-.tooltip {
-    position: absolute; left: 100%; margin-left: 15px; background: var(--text-main); color: var(--bg-app);
-    padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;
-    opacity: 0; pointer-events: none; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    white-space: nowrap; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.2); transform: translateX(-10px);
-}
-.tooltip::before {
-    content: ''; position: absolute; top: 50%; right: 100%; transform: translateY(-50%);
-    border-width: 4px; border-style: solid; border-color: transparent var(--text-main) transparent transparent;
-}
+.tooltip { position: absolute; left: 100%; margin-left: 15px; background: var(--text-main); color: var(--bg-app); padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; opacity: 0; pointer-events: none; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); white-space: nowrap; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.2); transform: translateX(-10px); }
+.tooltip::before { content: ''; position: absolute; top: 50%; right: 100%; transform: translateY(-50%); border-width: 4px; border-style: solid; border-color: transparent var(--text-main) transparent transparent; }
 .app-wrapper.sidebar-collapsed .nav-item:hover .tooltip { opacity: 1; transform: translateX(0); }
-
-/* SIDEBAR */
 .app-wrapper.sidebar-collapsed .sidebar { width: 80px; }
-.app-wrapper.sidebar-collapsed .brand-text,
-.app-wrapper.sidebar-collapsed .collapse-text,
-.app-wrapper.sidebar-collapsed .menu-label,
-.app-wrapper.sidebar-collapsed .nav-text,
-.app-wrapper.sidebar-collapsed .badge-count {
-    opacity: 0; pointer-events: none; width: 0; display: none;
-}
+.app-wrapper.sidebar-collapsed .brand-text, .app-wrapper.sidebar-collapsed .collapse-text, .app-wrapper.sidebar-collapsed .menu-label, .app-wrapper.sidebar-collapsed .nav-text, .app-wrapper.sidebar-collapsed .badge-count { opacity: 0; pointer-events: none; width: 0; display: none; }
 .app-wrapper.sidebar-collapsed .collapse-btn { justify-content: center; padding: 10px 0; }
 .app-wrapper.sidebar-collapsed .nav-item { justify-content: center; padding: 12px 0; }
 .app-wrapper.sidebar-collapsed .nav-item i { margin: 0; font-size: 20px; }
 .app-wrapper.sidebar-collapsed .brand { justify-content: center; margin-left: -5px; }
 .app-wrapper.sidebar-collapsed .nav-item:hover { transform: translateY(-3px); }
 
-/*  */
-.main-content { 
-    flex: 1; display: flex; flex-direction: column;
-    padding: 25px 35px; height: 100vh; box-sizing: border-box; transition: 0.5s cubic-bezier(0.25, 1, 0.5, 1); 
-}
+.main-content { flex: 1; display: flex; flex-direction: column; padding: 25px 35px; height: 100vh; box-sizing: border-box; transition: 0.5s cubic-bezier(0.25, 1, 0.5, 1); }
 .mobile-toggle { display: none; }
-
-
 .dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-shrink: 0; }
 .header-text h1 { font-family: 'Sora', sans-serif; font-size: 24px; font-weight: 800; margin: 0 0 4px 0; letter-spacing: -0.5px;}
 .header-text p { color: var(--text-muted); font-size: 13px; margin: 0; }
 
-.alert-pill {
-    display: flex; align-items: center; gap: 12px; padding: 8px 14px 8px 8px;
-    background: var(--bg-card); border: 1px solid var(--primary); border-radius: 50px;
-    text-decoration: none; box-shadow: var(--shadow-soft); transition: 0.3s;
-}
+.alert-pill { display: flex; align-items: center; gap: 12px; padding: 8px 14px 8px 8px; background: var(--bg-card); border: 1px solid var(--primary); border-radius: 50px; text-decoration: none; box-shadow: var(--shadow-soft); transition: 0.3s; }
 .alert-pill:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(124, 58, 237, 0.2); }
 .pulse-anim { animation: pulseGlow 2s infinite; }
 @keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(124, 58, 237, 0); } 100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0); } }
@@ -326,33 +276,19 @@ onMounted(() => {
 .arrow-go { font-size: 18px; color: var(--primary); margin-left: 5px; transition: 0.3s; }
 .alert-pill:hover .arrow-go { transform: translateX(3px); }
 
-/* UKURAN Kotak DIKECILKAN */
-.top-stats-grid { display: grid;
-     grid-template-columns: 2fr 1fr;
-      gap: 18px;
-       margin-bottom: 25px; 
-       flex-shrink: 0;}
-
-.hero-purple-card {
-    background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
-    border-radius: 20px; padding: 25px; display: flex; flex-direction: column; justify-content: space-between;
-    position: relative; overflow: hidden; box-shadow: 0 10px 25px rgba(109, 40, 217, 0.25); height: 180px;
-}
+.top-stats-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; margin-bottom: 25px; flex-shrink: 0;}
+.hero-purple-card { background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%); border-radius: 20px; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; box-shadow: 0 10px 25px rgba(109, 40, 217, 0.25); height: 180px; }
 .hero-purple-card:hover .hero-glow { transform: scale(1.1) rotate(10deg); }
 .hero-top { display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2;}
 .hero-label { color: rgba(255,255,255,0.8); font-size: 13px; font-weight: 500; }
 .hero-icon-circle { width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; backdrop-filter: blur(5px);}
 .hero-mid h2 { color: #fff; font-size: 30px; font-weight: 800; font-family: 'Sora', sans-serif; margin: 8px 0 4px 0; position: relative; z-index: 2; letter-spacing: -0.5px;}
-.hero-subtext { color: rgba(255,255,255,0.7); font-size: 12px; margin: 0; position: relative; z-index: 2;}
 .hero-bottom { margin-top: auto; position: relative; z-index: 2;}
 .btn-glass { background: rgba(255,255,255,0.95); color: #6D28D9; padding: 8px 18px; border-radius: 50px; text-decoration: none; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; transition: 0.3s; }
 .btn-glass:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 15px rgba(0,0,0,0.15); }
 .hero-glow { position: absolute; right: -50px; bottom: -50px; width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%); pointer-events: none; z-index: 1; transition: all 1s ease;}
 
-.stat-clean-card {
-    background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 20px; padding: 25px;
-    box-shadow: var(--shadow-soft); display: flex; flex-direction: column; text-decoration: none; transition: 0.3s; height: 180px;
-}
+.stat-clean-card { background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 20px; padding: 25px; box-shadow: var(--shadow-soft); display: flex; flex-direction: column; text-decoration: none; transition: 0.3s; height: 180px; }
 .stat-clean-card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: 0 15px 30px -10px rgba(124, 58, 237, 0.15); }
 .stat-header { display: flex; align-items: center; gap: 12px; margin-bottom: auto; }
 .icon-wrap { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
@@ -363,38 +299,21 @@ onMounted(() => {
 .stat-trend { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; display: inline-block; }
 .trend-up { background: rgba(16, 185, 129, 0.1); color: #10B981; }
 
-
-.content-section { display: flex; flex-direction: column; flex: 1; min-height: 0;  }
+.content-section { display: flex; flex-direction: column; flex: 1; min-height: 0; }
 .section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-shrink: 0; }
 .section-title h4 { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 800; color: var(--text-main); margin: 0; }
-.legend { font-size: 11px; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
-.legend span { width: 10px; height: 10px; border-radius: 3px; display: inline-block; background: var(--primary); }
-.legend span:last-child { background: var(--bg-card); border: 2px solid var(--border-soft); }
-
-.quick-access-grid { 
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; 
-    flex: 1; 
-}
-.qa-card {
-    background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 18px; 
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    text-decoration: none; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); box-shadow: var(--shadow-soft);
-    position: relative; overflow: hidden; z-index: 1; padding: 15px;
-}
-.qa-card::before {
-    content: ''; position: absolute; inset: 0; background: var(--primary); z-index: -1;
-    transform: scaleY(0); transform-origin: bottom; transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-}
+.quick-access-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; flex: 1; }
+.qa-card { background: var(--bg-card); border: 1px solid var(--border-soft); border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-decoration: none; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); box-shadow: var(--shadow-soft); position: relative; overflow: hidden; z-index: 1; padding: 15px; }
+.qa-card::before { content: ''; position: absolute; inset: 0; background: var(--primary); z-index: -1; transform: scaleY(0); transform-origin: bottom; transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1); }
 .hover-anim:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.2); }
 .hover-anim:hover::before { transform: scaleY(1); }
 .qa-icon { font-size: 32px; color: var(--primary); margin-bottom: 8px; transition: 0.3s ease; display: inline-block;}
-.qa-text { font-size: 13px; font-weight: 700; color: var(--text-main); transition: 0.3s ease; font-family: 'Sora', sans-serif;}
+.qa-text { font-size: 13px; font-weight: 700; color: var(--text-main); transition: 0.3s ease; font-family: 'Sora-sans', sans-serif;}
 .hover-anim:hover .qa-icon { color: #fff; transform: scale(1.1) rotate(5deg); }
 .hover-anim:hover .qa-text { color: #fff; }
 
-/* Responsif Khusus Tablet/Mobile JIKA layar dipaksa mengecil */
 @media (max-width: 900px) {
-    .app-wrapper { overflow: auto; height: auto; } /* Kembalikan scroll khusus di layar kecil */
+    .app-wrapper { overflow: auto; height: auto; }
     .main-content { height: auto; overflow: visible; }
     .top-stats-grid { grid-template-columns: 1fr; }
     .quick-access-grid { grid-template-columns: repeat(2, 1fr); min-height: 400px; }

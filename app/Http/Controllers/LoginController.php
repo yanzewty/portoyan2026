@@ -12,6 +12,7 @@ use Inertia\Inertia;
 
 class LoginController extends Controller
 {
+    // Bikin tampilan email buat OTP
     private function getHtmlEmailDesign($otp)
     {
         return "
@@ -32,11 +33,13 @@ class LoginController extends Controller
         ";
     }
 
+    // Nampilin form login
     public function showLoginForm()
     {
         return Inertia::render('Auth/Login');
     }
 
+    // Proses login biasa
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -46,6 +49,7 @@ class LoginController extends Controller
 
         $user = User::where('email', $credentials['email'])->first();
 
+        // Kalo user ga ada atau password salah, balikin error
         if (!$user || !Hash::check($credentials['password'], $user->password)) {
             return back()->withErrors(['email' => 'Email atau password salah!']);
         }
@@ -55,8 +59,10 @@ class LoginController extends Controller
         return redirect()->intended('/admin');
     }
 
+    // Minta kode OTP
     public function requestOtp(Request $request)
     {
+        // Cek jeda waktu biar ga spam
         if (session()->has('login_otp_time')) {
             $timePassed = time() - session('login_otp_time');
             if ($timePassed < 60) {
@@ -71,6 +77,7 @@ class LoginController extends Controller
             'recaptcha_token.required' => 'Silakan centang verifikasi keamanan terlebih dahulu.'
         ]);
 
+        // Verifikasi dari mbah Google (reCAPTCHA)
         $response = Http::withoutVerifying()->asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
             'secret' => env('RECAPTCHA_SECRET_KEY'),
             'response' => $request->recaptcha_token,
@@ -87,14 +94,17 @@ class LoginController extends Controller
             return back()->withErrors(['email' => 'Email tidak terdaftar di sistem!']);
         }
 
+        // Bikin 6 digit angka random
         $otp = random_int(100000, 999999);
 
+        // Simpan ke session
         session([
             'login_user_id' => $user->id,
             'login_otp' => $otp,
             'login_otp_time' => time()
         ]);
 
+        // Coba kirim email
         try {
             Mail::html($this->getHtmlEmailDesign($otp), function ($message) use ($user) {
                 $message->to($user->email)->subject('Kode Verifikasi Login Admin Portofolio');
@@ -106,6 +116,7 @@ class LoginController extends Controller
         return redirect()->route('login.otp')->with('success_msg', 'Kode verifikasi telah dikirim ke email!');
     }
 
+    // Kirim ulang kode kalo belum masuk
     public function resendOtp(Request $request)
     {
         if (!session()->has('login_user_id')) {
@@ -131,12 +142,14 @@ class LoginController extends Controller
         return back()->with('success_msg', 'Kode verifikasi baru berhasil dikirim ulang!');
     }
 
+    // Tampilan input OTP
     public function showLoginOtp()
     {
         if (!session()->has('login_user_id')) {
             return redirect()->route('login');
         }
 
+        // Kalau udah lebih dari 5 menit, gw suru balik mampus
         if (time() - session('login_otp_time') > 300) {
             session()->forget(['login_user_id', 'login_otp', 'login_otp_time']);
             return redirect()->route('login')->withErrors(['email' => 'Sesi OTP telah kadaluarsa (5 Menit). Silakan login kembali.']);
@@ -147,6 +160,7 @@ class LoginController extends Controller
         ]);
     }
 
+    // Cek bener gak kodenya
     public function verifyLoginOtp(Request $request)
     {
         $request->validate(['otp' => 'required|numeric']);
@@ -160,6 +174,7 @@ class LoginController extends Controller
             $user = User::find(session('login_user_id'));
             Auth::login($user);
             
+            // Bersihin session kalo sukses
             session()->forget(['login_user_id', 'login_otp', 'login_otp_time']);
             $request->session()->regenerate();
             return redirect()->intended('/admin');
@@ -168,6 +183,7 @@ class LoginController extends Controller
         return back()->withErrors(['otp' => 'Kode OTP salah, silakan cek kembali!']);
     }
 
+    // Fungsi keluar
     public function logout(Request $request)
     {
         Auth::logout();

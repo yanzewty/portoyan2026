@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { Head, Link, useForm, router, usePage } from '@inertiajs/vue3';
 
+// Tarik data profil sama panel dari database
 const props = defineProps({
     profile: { type: Object, default: () => ({}) },
     about: { type: Object, default: () => ({}) },
@@ -12,23 +13,25 @@ const page = usePage();
 const showSuccessToast = ref(false);
 const toastMessage = ref('');
 
+// Munculin notif sukses di pojok, ilang sendiri pas 3 detik
 const showToast = (message) => {
     toastMessage.value = message;
     showSuccessToast.value = true;
     setTimeout(() => { showSuccessToast.value = false; }, 3000);
 };
 
-// State untuk Modal Hapus
+// Buat nampilin atau nyembunyiin pop-up konfirmasi hapus
 const showDeleteModal = ref(false);
 const panelToDelete = ref(null);
 
-// Form 1: Tentang Saya (Utama)
+// Form buat nampung teks utama tentang saya
 const formAbout = useForm({
     about_sub_1: props.about?.tag || '',
     about_title: props.about?.title || '',
     about_1: props.about?.description || ''
 });
 
+// Lempar editan teks utama ke backend biar disimpen
 const submitAbout = () => {
     formAbout.post('/admin/about', {
         preserveScroll: true,
@@ -36,13 +39,14 @@ const submitAbout = () => {
     });
 };
 
-// Form 2: Tambah Panel Baru
+// Form buat nambahin kotak panel cerita baru
 const formPanel = useForm({
     tag: '',
     title: '',
     desc_1: ''
 });
 
+// Lempar data panel baru ke backend trus kosongin formnya lagi
 const submitPanel = () => {
     formPanel.post('/admin/panels', {
         preserveScroll: true,
@@ -53,17 +57,19 @@ const submitPanel = () => {
     });
 };
 
-// ================= FUNGSI HAPUS CUSTOM MODAL =================
+// Nangkep ID panel yang mau dihapus trus munculin pop-up
 const confirmDelete = (id) => {
     panelToDelete.value = id;
     showDeleteModal.value = true;
 };
 
+// Kalau gajadi hapus, tutup lagi pop-up nya
 const cancelDelete = () => {
     showDeleteModal.value = false;
     panelToDelete.value = null;
 };
 
+// Eksekusi hapus panel ke database kalau diklik 'Ya'
 const executeDelete = () => {
     if (panelToDelete.value) {
         router.delete(`/admin/panels/${panelToDelete.value}`, {
@@ -84,7 +90,7 @@ const executeDelete = () => {
     <div class="admin-container">
         <div class="wrap-form">
             
-            <!-- HEADER -->
+            <!-- Bagian atas halaman -->
             <div class="header-flex">
                 <div>
                     <Link href="/admin" class="btn-back"><i class='bx bx-arrow-back'></i> Kembali ke Dashboard</Link>
@@ -96,7 +102,7 @@ const executeDelete = () => {
                 </a>
             </div>
 
-            <!-- BAGIAN 1: TEKS UTAMA -->
+            <!-- Kotak isi form paragraf utama -->
             <div class="card-form" style="--accent: var(--primary);">
                 <div class="form-title"><i class='bx bx-user-pin'></i> Teks Utama Tentang Saya</div>
                 
@@ -126,10 +132,10 @@ const executeDelete = () => {
                 </form>
             </div>
 
-            <!-- LAYOUT 2 KOLOM: PANEL BARU & DAFTAR PANEL -->
+            <!-- Tata letak dua kolom buat nambah dan ngelist panel -->
             <div class="panel-grid">
                 
-                <!-- BAGIAN 2: FORM PANEL BARU -->
+                <!-- Kotak form khusus bikin panel baru -->
                 <div class="card-form" style="--accent: var(--cyan); margin-bottom: 0;">
                     <div class="form-title" style="color: var(--cyan);"><i class='bx bx-plus-circle'></i> Tambah Panel Cerita</div>
                     <p class="sub-hint">Pecah ceritamu ke dalam panel (contoh: Visi Misi, Fokus).</p>
@@ -155,7 +161,7 @@ const executeDelete = () => {
                     </form>
                 </div>
 
-                <!-- BAGIAN 3: DAFTAR PANEL -->
+                <!-- Menampilkan semua panel yang udah dibikin -->
                 <div class="card-form" style="--accent: var(--gold); margin-bottom: 0;">
                     <div class="form-title"><i class='bx bx-list-ul'></i> Daftar Panel Tambahan <span class="badge-count">{{ panels.length }}</span></div>
                     
@@ -169,13 +175,12 @@ const executeDelete = () => {
                             <div class="panel-info">
                                 <span class="panel-tag">{{ panel.tag }}</span>
                                 <h4>{{ panel.title }}</h4>
-                                <!-- Teks deskripsi agar tampil utuh ke bawah tanpa terpotong -->
                                 <p style="white-space: pre-wrap; line-height: 1.6; padding-right: 10px;">{{ panel.description }}</p>
                             </div>
                             <div class="panel-actions">
-    <Link :href="`/admin/panels/${panel.id}/edit`" class="btn-edit"><i class='bx bx-edit'></i> Edit</Link>
-    <button @click="confirmDelete(panel.id)" class="btn-delete"><i class='bx bx-trash'></i> Hapus</button>
-</div>
+                                <Link :href="`/admin/panels/${panel.id}/edit`" class="btn-edit"><i class='bx bx-edit'></i> Edit</Link>
+                                <button @click="confirmDelete(panel.id)" class="btn-delete"><i class='bx bx-trash'></i> Hapus</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -184,7 +189,7 @@ const executeDelete = () => {
 
         </div>
 
-        <!-- Custom Modal Hapus (Muncul di Tengah Layar) -->
+        <!-- Tampilan pop-up hitam kalau klik tombol hapus -->
         <div class="modal-overlay" :class="{'show': showDeleteModal}">
             <div class="modal-card">
                 <div class="modal-icon"><i class='bx bx-trash'></i></div>
@@ -197,7 +202,7 @@ const executeDelete = () => {
             </div>
         </div>
 
-        <!-- Toast Notifikasi (Kanan Atas) -->
+        <!-- Kotak ijo notif sukses di pojok atas -->
         <div class="toast" :class="{'toast-show': showSuccessToast || $page.props.flash?.success_msg}">
             <div class="toast-icon"><i class='bx bx-check-circle'></i></div>
             <div class="toast-text">{{ toastMessage || $page.props.flash?.success_msg }}</div>
@@ -207,17 +212,29 @@ const executeDelete = () => {
 </template>
 
 <style scoped>
-/* ================= TEMA & SETUP ================= */
+/* Pengaturan warna tema dasar web */
 .admin-container {
-    --bg: #0A0E17; --panel: #10151F; --panel-2: #141B29; --line: #232D3E; 
-    --text: #EAEEF5; --dim: #8792A6; --primary: #3763E0; --cyan: #4E9BE0; --gold: #C9A24A; --danger: #FF5F56;
-    background-color: var(--bg); color: var(--text); font-family: 'Inter', sans-serif;
-    min-height: 100vh; padding: 40px; box-sizing: border-box; position: relative;
+  --bg: #0A0E17; --panel: #10151F;
+   --panel-2: #141B29; --line: #232D3E; 
+    --text: #EAEEF5; --dim: #8792A6;
+  --primary: #3763E0; --cyan: #4E9BE0;
+   --gold: #C9A24A; --danger: #FF5F56;
+  background-color: var(--bg);
+   color: var(--text);
+    font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+   padding: 40px; box-sizing: border-box;
+    position: relative;
 }
 
-.wrap-form { max-width: 1000px; margin: 0 auto; padding-bottom: 60px; }
+/* Biar formnya ga melar sampe ujung layar */
+.wrap-form {
+  max-width: 1000px;
+   margin: 0 auto;
+    padding-bottom: 60px;
+}
 
-/* ================= HEADER ================= */
+/* Tombol link dan judul paling atas */
 .header-flex { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; flex-wrap: wrap; gap: 16px;}
 .btn-back { display: inline-flex; align-items: center; gap: 6px; color: var(--dim); font-size: 13px; text-decoration: none; margin-bottom: 10px; transition: 0.2s;}
 .btn-back:hover { color: var(--cyan); transform: translateX(-4px);}
@@ -226,35 +243,84 @@ const executeDelete = () => {
 .btn-outline { padding: 10px 18px; border: 1px solid var(--line); border-radius: 10px; font-size: 13px; color: var(--text); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; background: var(--panel);}
 .btn-outline:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(78,155,224,0.1); }
 
-/* ================= CARDS & FORMS ================= */
-.card-form { background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--accent, var(--line)); border-radius: 16px; padding: 30px; margin-bottom: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-.form-title { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 24px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px;}
+/* Background hitam kotak form */
+.card-form {
+  background: var(--panel);
+   border: 1px solid var(--line);
+    border-top: 3px solid var(--accent, var(--line));
+  border-radius: 16px;
+   padding: 30px;
+  margin-bottom: 24px;
+   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+/* Judul kecil di dalem kotak form */
+.form-title {
+  font-size: 15px;
+   font-weight: 700;
+    color: var(--text);
+  margin-bottom: 24px;
+   display: flex; align-items: center;
+    gap: 8px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+/* Kolom inputan teks */
 .form-title i { color: var(--accent); font-size: 20px; }
 .badge-count { background: rgba(201, 162, 74, 0.15); color: var(--gold); padding: 2px 8px; border-radius: 20px; font-size: 12px; margin-left: 6px;}
 .sub-hint { font-size: 13px; color: var(--dim); margin: -10px 0 20px 0; }
-
 .form-group { margin-bottom: 20px; }
 label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); display: block; margin-bottom: 8px; }
 input[type=text], textarea { width: 100%; padding: 14px 16px; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; color: var(--text); font-size: 13.5px; transition: border-color 0.2s; box-sizing: border-box;}
 input:focus, textarea:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(78,155,224,0.1);}
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
-/* ================= GRID PANEL TAMBAHAN ================= */
-.panel-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 24px; }
-@media (max-width: 800px) { .panel-grid { grid-template-columns: 1fr; } .grid2 { grid-template-columns: 1fr; } }
+/* Bagi layar jadi dua buat panel tambahan */
+.panel-grid {
+  display: grid;
+   grid-template-columns: 1fr 1.3fr;
+    gap: 24px;
+}
 
-/* ================= BUTTONS ================= */
+/* Kalau layarnya kecil hp, dijadiin satu baris ke bawah */
+@media (max-width: 800px) {
+  .panel-grid {
+    grid-template-columns: 1fr;
+  }
+   .grid2 {
+    grid-template-columns: 1fr;
+   }
+}
+
+/* Tombol submit simpan data */
 .submit-wrap { display: flex; justify-content: flex-end; margin-top: 20px; }
 .submit-btn { width: auto; padding: 14px 32px; border: none; border-radius: 12px; cursor: pointer; background: var(--primary); color: #fff; font-size: 14px; font-weight: 700; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; letter-spacing: 0.5px;}
 .submit-btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(55, 99, 224, 0.4); }
-
 .btn-add-solid { width: 100%; padding: 14px; background: rgba(78,155,224,0.1); color: var(--cyan); border: 1px solid rgba(78,155,224,0.3); border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; }
 .btn-add-solid:hover:not(:disabled) { background: var(--cyan); color: #000; }
 
-/* ================= LIST PANEL ================= */
-.empty-state { text-align: center; padding: 40px 20px; background: var(--bg); border: 1px dashed var(--line); border-radius: 12px; color: var(--dim); font-size: 13px; }
-.empty-state i { font-size: 32px; margin-bottom: 10px; color: var(--line);}
+/* Tampilan list kalau belum ada panel sama sekali */
+.empty-state {
+  text-align: center;
+   padding: 40px 20px;
+    background: var(--bg);
+  border: 1px dashed var(--line);
+   border-radius: 12px;
+    color: var(--dim); font-size: 13px;
+}
 
+.empty-state i {
+  font-size: 32px;
+   margin-bottom: 10px;
+    color: var(--line);
+}
+
+.panel-actions {
+  display: flex;
+   gap: 10px; flex-shrink: 0;
+    align-items: center;
+}
+
+/* Desain baris item panel yang udah dibikin */
 .panel-list { display: flex; flex-direction: column; gap: 14px; }
 .panel-item { background: var(--panel-2); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; transition: 0.3s; }
 .panel-item:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3);}
@@ -262,15 +328,12 @@ input:focus, textarea:focus { outline: none; border-color: var(--cyan); box-shad
 .panel-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #000; background: var(--gold); padding: 3px 8px; border-radius: 6px; font-weight: 700; margin-bottom: 8px; display: inline-block; }
 .panel-info h4 { font-family: 'Sora', sans-serif; font-size: 15px; margin: 0 0 6px 0; color: #fff; }
 .panel-info p { font-size: 12px; color: var(--dim); line-height: 1.5; margin: 0; }
-
-.panel-actions { display: flex; gap: 10px; flex-shrink: 0; align-items: center; }
 .btn-edit { background: rgba(78,155,224,0.1); border: 1px solid rgba(78,155,224,0.3); color: var(--cyan); padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s; }
 .btn-edit:hover { background: var(--cyan); color: #000; }
 .btn-delete { background: rgba(255,95,86,0.1); border: 1px solid rgba(255,95,86,0.3); color: var(--danger); padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s; }
 .btn-delete:hover { background: var(--danger); color: #fff; }
 
-
-/* ================= MODAL HAPUS (POP-UP TENGAH) ================= */
+/* Desain efek pop-up melayang di tengah */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 14, 23, 0.85); backdrop-filter: blur(5px); z-index: 2000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: 0.3s; }
 .modal-overlay.show { opacity: 1; visibility: visible; }
 .modal-card { background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--danger); padding: 30px; border-radius: 16px; width: 90%; max-width: 360px; text-align: center; box-shadow: 0 15px 40px rgba(0,0,0,0.4); transform: translateY(20px); transition: 0.3s;}
@@ -283,8 +346,6 @@ input:focus, textarea:focus { outline: none; border-color: var(--cyan); box-shad
 .btn-modal-cancel:hover { background: rgba(255,255,255,0.05); }
 .btn-modal-delete { flex: 1; padding: 12px; background: var(--danger); border: none; color: #fff; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(255, 95, 86, 0.2); }
 .btn-modal-delete:hover { background: #e04a42; transform: translateY(-2px); }
-
-/* ================= TOAST NOTIFIKASI ================= */
 .toast { position: fixed; top: 30px; right: 30px; background: rgba(16, 21, 31, 0.95); border: 1px solid var(--cyan); color: var(--cyan); padding: 14px 20px; border-radius: 14px; display: flex; align-items: center; gap: 12px; font-size: 13.5px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(78,155,224,0.2); transform: translateY(-100px); opacity: 0; visibility: hidden; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; backdrop-filter: blur(8px); }
 .toast.toast-show { transform: translateY(0); opacity: 1; visibility: visible; }
 .toast-icon { font-size: 22px; }

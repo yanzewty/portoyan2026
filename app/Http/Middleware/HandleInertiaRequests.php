@@ -7,37 +7,22 @@ use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
 {
-    /**
-     * The root template that's loaded on the first page visit.
-     *
-     * @see https://inertiajs.com/server-side-setup#root-template
-     *
-     * @var string
-     */
+    // Kerangka blade utama yang diload pas web pertama kali dibuka
     protected $rootView = 'app';
 
-    /**
-     * Determines the current asset version.
-     *
-     * @see https://inertiajs.com/asset-versioning
-     */
+    // Buat ngecek versi file asset (css/js) biar nggak nyangkut di cache browser
     public function version(Request $request): ?string
     {
         return parent::version($request);
     }
 
-    /**
-     * Define the props that are shared by default.
-     *
-     * @see https://inertiajs.com/shared-data
-     *
-     * @return array<string, mixed>
-     */
+    
+    // Misalnya buat nampilin flash message sukses/error dari controller
     public function share(Request $request): array
     {
         return [
             ...parent::share($request),
-            //
+            // masukin data tambahan di bawah sini kalo butuh
         ];
     }
 }

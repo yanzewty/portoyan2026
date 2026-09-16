@@ -1,16 +1,19 @@
 <script setup>
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
+// Menerima data props panel yang dikirim dari controller backend Laravel
 const props = defineProps({
     panel: { type: Object, required: true }
 });
 
+// Inisialisasi state form menggunakan Inertia useForm untuk memudahkan proses pengiriman data
 const form = useForm({
     tag: props.panel.tag || '',
     title: props.panel.title || '',
     desc_1: props.panel.description || ''
 });
 
+// Fungsi untuk mengirim permintaan update (PUT) ke server backend Laravel
 const submit = () => {
     form.put(`/admin/panels/${props.panel.id}`, {
         preserveScroll: true
@@ -24,12 +27,13 @@ const submit = () => {
     <div class="admin-container">
         <div class="wrap-form">
             
+            <!-- Tombol Navigasi Kembali ke Halaman Tentang Saya -->
             <div class="header-flex">
                 <Link href="/admin/about" class="btn-back"><i class='bx bx-arrow-back'></i> Kembali ke Tentang Saya</Link>
             </div>
 
+            <!-- Kartu Utama Pembungkus Form Edit -->
             <div class="card-form">
-                <!-- Header Form Pengganti Preview -->
                 <div class="form-header">
                     <div class="icon-box"><i class='bx bx-edit-alt'></i></div>
                     <div class="header-text">
@@ -38,6 +42,7 @@ const submit = () => {
                     </div>
                 </div>
                 
+                <!-- Form Utama Edit Panel -->
                 <form @submit.prevent="submit" class="form-body">
                     <div class="grid2">
                         <div class="form-group">
@@ -55,6 +60,7 @@ const submit = () => {
                         <textarea v-model="form.desc_1" rows="7" required placeholder="Tuliskan isi cerita panel di sini..."></textarea>
                     </div>
                     
+                    <!-- Tombol Aksi Batal & Simpan Perubahan -->
                     <div class="action-footer">
                         <Link href="/admin/about" class="btn-cancel">Batal</Link>
                         <button type="submit" class="btn-save" :disabled="form.processing">
@@ -70,6 +76,7 @@ const submit = () => {
 </template>
 
 <style scoped>
+/* Pengaturan variabel warna tema gelap dan tata letak kontainer utama */
 .admin-container {
     --bg: #0A0E17; --panel: #10151F; --panel-2: #141B29; --line: #232D3E; 
     --text: #EAEEF5; --dim: #8792A6; --primary: #3763E0; --cyan: #4E9BE0; 
@@ -85,7 +92,7 @@ const submit = () => {
 
 .card-form { background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--cyan); border-radius: 20px; overflow: hidden; box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
 
-/* Header Form Style */
+/* Desain Header di dalam Kartu Form */
 .form-header { display: flex; align-items: center; gap: 20px; padding: 30px 40px; background: linear-gradient(to bottom, rgba(78, 155, 224, 0.05), transparent); border-bottom: 1px solid var(--line); }
 .icon-box { width: 50px; height: 50px; border-radius: 14px; background: rgba(78, 155, 224, 0.1); color: var(--cyan); display: flex; align-items: center; justify-content: center; font-size: 24px; border: 1px solid rgba(78, 155, 224, 0.2); }
 .header-text h2 { font-family: 'Sora', sans-serif; font-size: 18px; margin: 0 0 4px 0; color: #fff; font-weight: 700;}
@@ -101,6 +108,7 @@ input:focus, textarea:focus { outline: none; border-color: var(--cyan); box-shad
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 @media (max-width: 600px) { .grid2 { grid-template-columns: 1fr; } }
 
+/* Bagian Tombol Aksi di Bawah Form */
 .action-footer { display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-top: 40px; padding-top: 30px; border-top: 1px dashed var(--line); }
 .btn-cancel { padding: 14px 28px; background: transparent; border: 1px solid var(--line); color: var(--text); border-radius: 12px; font-size: 14px; font-weight: 600; text-decoration: none; transition: 0.3s; }
 .btn-cancel:hover { background: rgba(255,255,255,0.05); border-color: var(--dim); }

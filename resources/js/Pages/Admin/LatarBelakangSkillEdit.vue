@@ -82,7 +82,7 @@ const submit = () => {
             <form @submit.prevent="submit" class="premium-card">
                 <div class="card-header-accent" :style="isEditing ? '--accent: var(--primary);' : '--accent: var(--dim);'">
                     <i :class="isEditing ? 'bx bx-edit' : 'bx bx-lock-alt'"></i> 
-                    {{ isEditing ? 'Membuka Akses Edit Data' : 'Data Saat Ini Terkunci' }}
+            {{ isEditing ? 'Membuka Akses Edit Data' : 'Data Saat Ini Terkunci' }}
                 </div>
                 
                 <div class="card-body">
@@ -91,14 +91,14 @@ const submit = () => {
                         <div class="upload-col">
                             <label class="section-label">GAMBAR ILUSTRASI</label>
                             <div class="upload-zone" :class="{ 'disabled-zone': !isEditing, 'has-image': imagePreview }" @click="triggerUpload">
-                                <img v-if="imagePreview" :src="imagePreview" alt="Baru" class="preview-img new">
-                                <img v-else :src="getFallbackGambar(props.item)" alt="Lama" class="preview-img old" :class="{'dimmed': isEditing}">
+             <img v-if="imagePreview" :src="imagePreview" alt="Baru" class="preview-img new">
+               <img v-else :src="getFallbackGambar(props.item)" alt="Lama" class="preview-img old" :class="{'dimmed': isEditing}">
                                 
-                                <div v-if="!imagePreview" class="upload-prompt">
-                                    <div class="icon-circle"><i :class="isEditing ? 'bx bx-cloud-upload' : 'bx bx-lock'"></i></div>
-                                    <h4>{{ isEditing ? 'Ganti Foto' : 'Terkunci' }}</h4>
-                                </div>
-                            </div>
+                     <div v-if="!imagePreview" class="upload-prompt">
+   <div class="icon-circle"><i :class="isEditing ? 'bx bx-cloud-upload' : 'bx bx-lock'"></i></div>
+<h4>{{ isEditing ? 'Ganti Foto' : 'Terkunci' }}</h4>
+                 </div>
+               </div>
                             <input type="file" ref="fileInput" accept="image/*" style="display: none;" @change="handleFileUpload">
                         </div>
 
@@ -106,33 +106,35 @@ const submit = () => {
                         <div class="form-zone">
                             <label class="section-label">INFORMASI TEKS</label>
                             <div class="grid-2">
-                                <div class="input-group">
-                                    <label>Teks Modul (Atas)</label>
-                                    <input type="text" v-model="form.modul" required :disabled="!isEditing">
+            <div class="input-group">
+                      <label>Teks Modul (Atas)</label>
+           <input type="text" v-model="form.modul" required :disabled="!isEditing">
                                 </div>
                                 <div class="input-group">
-                                    <label>Kategori (Bawah)</label>
+            <label>Kategori (Bawah)</label>
                                     <input type="text" v-model="form.kategori" required :disabled="!isEditing">
-                                </div>
+              </div>
                             </div>
-                            <div class="input-group">
-                                <label>Judul Keahlian Utama</label>
-                                <input type="text" v-model="form.judul" required class="input-bold" :disabled="!isEditing">
+
+
+               <div class="input-group">
+                <label>Judul Keahlian Utama</label>
+                      <input type="text" v-model="form.judul" required class="input-bold" :disabled="!isEditing">
                             </div>
-                            <div class="input-group">
-                                <label>Deskripsi Panjang</label>
-                                <textarea v-model="form.deskripsi" rows="6" required :disabled="!isEditing"></textarea>
+                     <div class="input-group">
+                            <label>Deskripsi Panjang</label>
+                            <textarea v-model="form.deskripsi" rows="6" required :disabled="!isEditing"></textarea>
                             </div>
                             
                             <div class="action-footer" style="margin-top: 30px;">
-                                <button v-if="!isEditing" type="button" @click="isEditing = true" class="btn-save" style="width: 100%; justify-content: center;">
+                         <button v-if="!isEditing" type="button" @click="isEditing = true" class="btn-save" style="width: 100%; justify-content: center;">
                                     <i class='bx bx-edit-alt'></i> Buka Kunci & Mulai Edit
                                 </button>
                                 <template v-else>
                                     <button type="button" @click="cancelEdit" class="btn-cancel">Batal Edit</button>
                                     <button type="submit" class="btn-save btn-green" :disabled="form.processing">
-                                        <i :class="form.processing ? 'bx bx-loader-alt bx-spin' : 'bx bx-save'"></i> 
-                                        {{ form.processing ? 'Menyimpan...' : 'Simpan Perubahan' }}
+                            <i :class="form.processing ? 'bx bx-loader-alt bx-spin' : 'bx bx-save'"></i> 
+                            {{ form.processing ? 'Menyimpan...' : 'Simpan Perubahan' }}
                                     </button>
                                 </template>
                             </div>
@@ -168,7 +170,7 @@ const submit = () => {
 .header-content h1 { font-family: 'Sora', sans-serif; font-size: 32px; font-weight: 800; color: #fff; margin: 0 0 5px 0; }
 .header-content p { color: var(--dim); font-size: 14px; margin: 0; }
 
-/* PREMIUM CARD */
+/*  CARD */
 .premium-card { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.3); overflow: hidden; }
 .card-header-accent { background: linear-gradient(90deg, rgba(16,21,31,1) 0%, rgba(20,27,41,1) 100%); padding: 24px 30px; border-bottom: 1px solid var(--line); border-top: 3px solid var(--accent); font-family: 'Sora', sans-serif; font-weight: 700; font-size: 16px; color: #fff; display: flex; align-items: center; gap: 10px; transition: 0.3s;}
 .card-header-accent i { color: var(--accent); font-size: 22px; }

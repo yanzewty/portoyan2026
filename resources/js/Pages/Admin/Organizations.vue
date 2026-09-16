@@ -390,11 +390,8 @@ const submit = () => {
 </template>
 
 <style scoped>
-/* 
-======================================================
-1. VARIABEL & SETTINGAN DASAR KANVAS
-======================================================
-*/
+
+
 .admin-container {
     --bg: #0A0E17; 
     --panel: #10151F; 
@@ -422,9 +419,8 @@ const submit = () => {
 }
 
 /* 
-======================================================
-2. HEADER (Judul Halaman & Tombol Kembali)
-======================================================
+ HEADER (Judul Halaman & Tombol Kembali)
+
 */
 .page-header { 
     display: flex; 
@@ -489,9 +485,7 @@ const submit = () => {
 }
 
 /* 
-======================================================
-3. BUNGKUSAN KARTU UTAMA (CARD)
-======================================================
+ BUNGKUSAN KARTU UTAMA card
 */
 .premium-card { 
     background: var(--panel); 
@@ -501,7 +495,7 @@ const submit = () => {
     overflow: hidden; 
 }
 
-/* Aksen Garis Warna di Atas Kartu */
+/* Akses Garis Warna di Atas Kartu */
 .card-header-accent { 
     background: linear-gradient(90deg, rgba(16,21,31,1) 0%, rgba(20,27,41,1) 100%); 
     padding: 24px 30px; 
@@ -526,9 +520,8 @@ const submit = () => {
 }
 
 /* 
-======================================================
-4. INPUT FORM BESAR (Untuk Teks Utama)
-======================================================
+ INPUT FORM BESAR (Untuk Teks Utama)
+
 */
 .grid-2-custom { 
     display: grid; 
@@ -584,9 +577,8 @@ const submit = () => {
 }
 
 /* 
-======================================================
-5. TOMBOL FOOTER (Simpan & Batal Bawah)
-======================================================
+ TOMBOL FOOTER (Simpan & Batal Bawah)
+
 */
 .action-footer { 
     display: flex; 
@@ -640,9 +632,8 @@ const submit = () => {
 }
 
 /* 
-======================================================
-6. BULK ACTION & MODE PILIH (Bagian Atas Tabel)
-======================================================
+ BULK ACTION & MODE PILIH (Bagian Atas Tabel)
+
 */
 .select-mode-header { 
     display: flex; 
@@ -728,9 +719,8 @@ const submit = () => {
 .btn-cancel-select:hover { color: #fff; }
 
 /* 
-======================================================
-7. KARTU PENGALAMAN (GRID 2 KOLOM YANG BARU)
-======================================================
+ KARTU PENGALAMAN (GRID 2 KOLOM YANG BARU)
+
 */
 /* Ini kuncinya biar jadi 2 baris ke samping */
 .exp-grid-container { 
@@ -743,7 +733,7 @@ const submit = () => {
     .exp-grid-container { grid-template-columns: 1fr; } 
 }
 
-/* Desain Kartu High-End (Glassmorphism ringan) */
+/* Desain Kartu High-End  */
 .exp-card-item { 
     background: rgba(255, 255, 255, 0.015); 
     border: 1px solid rgba(255, 255, 255, 0.05); 

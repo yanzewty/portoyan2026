@@ -10,7 +10,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         
-        
+        // login pakai password
         User::updateOrCreate(
           ['email' => 'yanzewty@gmail.com'], 
             [

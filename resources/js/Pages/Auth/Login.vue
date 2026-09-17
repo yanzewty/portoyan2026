@@ -9,7 +9,6 @@ const passwordForm = useForm({
     password: '',
 });
 
-/* form OTP sekarang punya tampungan token */
 const otpForm = useForm({
     email: '',
     recaptcha_token: ''
@@ -23,7 +22,20 @@ const isDragging = ref(false);
 const startX = ref(0);
 const recaptchaWidgetId = ref(null);
 
-/* Fungsi menggambar kotak CAPTCHA (tema gelap) */
+const countdown = ref(0); 
+let countdownInterval = null;
+
+const startInterval = () => {
+    if (countdownInterval) clearInterval(countdownInterval);
+    countdownInterval = setInterval(() => {
+        if (countdown.value > 0) {
+            countdown.value--;
+        } else {
+            clearInterval(countdownInterval);
+        }
+    }, 1000);
+};
+
 const initRecaptcha = () => {
     if (window.grecaptcha && window.grecaptcha.render) {
         const container = document.getElementById('recaptcha-container');
@@ -45,7 +57,6 @@ const initRecaptcha = () => {
     }
 };
 
-/* Deteksi: Jika beralih ke form OTP, langsung gambar kotaknya */
 watch(loginMode, async (newMode) => {
     if (newMode === 'otp') {
         await nextTick();
@@ -101,10 +112,11 @@ const submitPasswordLogin = () => {
 };
 
 const submitOtpRequest = () => {
+    if (countdown.value > 0) return;
+
     customError.value = ''; 
     otpForm.clearErrors();
 
-    /* Peringatan jika user belum centang "I'm not a robot" */
     if (!otpForm.recaptcha_token) {
         triggerErrorTimer('Silakan selesaikan verifikasi keamanan (CAPTCHA) terlebih dahulu.');
         return;
@@ -132,7 +144,15 @@ let httpListener = null;
 let networkListener = null;
 
 onMounted(() => {
-    /* Masukkan script resmi Google secara asinkron (tidak bikin web lemot) */
+    const lastStart = sessionStorage.getItem('otp_timer_start');
+    if (lastStart) {
+        const secondsPassed = Math.floor((Date.now() - parseInt(lastStart)) / 1000);
+        if (secondsPassed < 60) {
+            countdown.value = 60 - secondsPassed;
+            startInterval();
+        }
+    }
+
     if (!document.getElementById('recaptcha-script')) {
         const script = document.createElement('script');
         script.id = 'recaptcha-script';
@@ -158,6 +178,7 @@ onMounted(() => {
 onUnmounted(() => {
     if (httpListener) httpListener();
     if (networkListener) networkListener();
+    if (countdownInterval) clearInterval(countdownInterval);
 });
 </script>
 
@@ -250,7 +271,7 @@ onUnmounted(() => {
                         <span>{{ $page.props.flash.success_msg }}</span>
                     </div>
 
-                    <!-- FORM PASSWORD (TIDAK ADA CAPTCHA) -->
+                    <!-- FORM PASSWORD -->
                     <form v-if="loginMode === 'password'" @submit.prevent="submitPasswordLogin" class="form-transition">
                         <div>
                             <label>Email</label>
@@ -277,7 +298,7 @@ onUnmounted(() => {
                         </button>
                     </form>
 
-                    <!-- FORM OTP (DENGAN CAPTCHA) -->
+                    <!-- FORM OTP -->
                     <form v-else @submit.prevent="submitOtpRequest" class="form-transition">
                         <div>
                             <label>Email Admin</label>
@@ -289,12 +310,18 @@ onUnmounted(() => {
 
                         <p class="otp-hint">Sistem akan mengirimkan 6 digit kode verifikasi instan ke email terdaftar Anda.</p>
 
-                        <!-- Tempat reCAPTCHA akan digambar oleh Google -->
                         <div id="recaptcha-container" class="recaptcha-wrap"></div>
 
-                        <button type="submit" class="submit-btn" :disabled="otpForm.processing">
-                            <i class="fas fa-paper-plane"></i> 
-                            {{ otpForm.processing ? 'Mengirim Kode...' : 'Kirim Kode OTP' }}
+                        <button type="submit" class="submit-btn" :disabled="otpForm.processing || countdown > 0">
+                            <template v-if="countdown > 0">
+                                <i class="fas fa-clock"></i> Tunggu {{ countdown }} detik...
+                            </template>
+                            <template v-else-if="otpForm.processing">
+                                <i class="fas fa-spinner fa-spin"></i> Mengirim Kode...
+                            </template>
+                            <template v-else>
+                                <i class="fas fa-paper-plane"></i> Kirim Kode OTP
+                            </template>
                         </button>
                     </form>
                 </div>
@@ -433,8 +460,6 @@ label {
     font-family: 'JetBrains Mono',monospace; margin: -2px 0 0 2px;
 }
 
-/* Penyesuaian jarak kotak CAPTCHA agar presisi di tengah form */
-/* Penyesuaian jarak dan manipulasi ukuran kotak CAPTCHA */
 .recaptcha-wrap {
     display: flex;
     justify-content: center;

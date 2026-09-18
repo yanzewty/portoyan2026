@@ -78,7 +78,7 @@ const displayKeahlian = computed(() => {
     return [
         { id: 1, modul: 'MODULE / 01', judul: 'Pemrograman Web', deskripsi: 'Membangun aplikasi website dinamis menggunakan Laravel dan Vue.js yang responsif dan optimal.', kategori: 'DEVELOPMENT' },
         { id: 2, modul: 'MODULE / 02', judul: 'UI/UX & Poster Digital', deskripsi: 'Merancang antarmuka pengguna yang modern, bersih, dan mudah digunakan untuk pengalaman interaktif.', kategori: 'DESIGN & UI' },
-        { id: 3, modul: 'MODULE / 03', judul: 'Kegiatan OSIS', deskripsi: 'Mengelola struktur data menggunakan MySQL untuk kebutuhan aplikasi dengan relasi yang efisien.', kategori: 'LEADERSHIP' }
+        { id: 3, modul: 'MODULE / 03', judul: 'Kegiatan OSIS', deskripsi: 'Mengelola struktur data untuk kebutuhan aplikasi dengan relasi yang efisien.', kategori: 'SEKRETARIS UMUM' }
     ];
 });
 
@@ -92,6 +92,8 @@ const getDeskripsi = (item, index) => {
 const displayKeahlianSingkat = computed(() => {
     if (props.dataKeahlianSingkat && props.dataKeahlianSingkat.length > 0) return props.dataKeahlianSingkat;
     return [
+
+
         { name: 'HTML 5', icon: 'fab fa-html5', color: '#E34F26' },
         { name: 'CSS 3', icon: 'fab fa-css3-alt', color: '#1572B6' },
         { name: 'JavaScript', icon: 'fab fa-js', color: '#F7DF1E' },
@@ -149,7 +151,7 @@ onUnmounted(() => {
     exceptionListener();
 });
 
-
+// mengembalikan sumbit di contact
 const submitContact = () => {
     if (isSubmitting.value) return; 
 
@@ -181,7 +183,8 @@ onMounted(() => {
     const pre = document.getElementById('preloader');
     if(pre) setTimeout(()=>{ pre.classList.add('leave'); setTimeout(()=>pre.remove(), 300); }, 150);
 
-    const textToType = props.profile?.role || 'IT ENGINEERING & IT Enthusiast';
+    // [DIUBAH] HARDCODE MURNI Teks Animasi Mengetik
+    const textToType = 'IT ENGINEERING & IT Enthusiast';
     let typeIndex = 0;
     function typeWriter(){
         if(typeIndex < textToType.length){
@@ -190,11 +193,15 @@ onMounted(() => {
             setTimeout(typeWriter, 85);
         }
     }
+
+    
     setTimeout(typeWriter, 900);
 
     const progressBar = document.querySelector('.progress');
     const docEl = document.documentElement;
-    
+
+
+    // scrool bar
     window.addEventListener('scroll', ()=>{
         let scrollable = docEl.scrollHeight - docEl.clientHeight;
         const pct = scrollable > 0 ? (docEl.scrollTop / scrollable) * 100 : 0;
@@ -288,7 +295,7 @@ onMounted(() => {
 
   <main>
     <nav>
-      <div class="logo">{{ profile?.name || 'Portfolio' }}<span>.</span></div>
+      <div class="logo">{{ profile?.name || 'Portfolio' }}</div>
       <div class="navlinks">
         <a href="#home">Home</a>
         <a href="#About">About</a>
@@ -355,10 +362,24 @@ onMounted(() => {
       </section>
 
       <section v-for="(panel, index) in panels" :key="index">
-        <div class="about-panel reveal" style="height: auto; min-height: fit-content; padding-bottom: 40px; display: flex; flex-wrap: wrap; gap: 40px; width: 100%; margin: 0 auto;">
-          <div style="flex: 1; min-width: 300px;">
+        <div class="about-panel reveal" style="height: auto; 
+        min-height: fit-content;
+         padding-bottom: 40px; 
+         display: flex;
+          flex-wrap: wrap; 
+         gap: 40px; width: 100%; 
+         margin: 0 auto;">
+
+          <div style="flex: 1;
+           min-width: 300px;">
             <div class="sec-tag" style="color:var(--cyan)">{{ panel.tag }}</div>
-            <h2 style="font-family: 'Sora', sans-serif; font-size: 38px; font-weight: 700; color: #fff; line-height: 1.3;">{{ panel.title }}</h2>
+
+            <h2 style="font-family: 'Sora', sans-serif; 
+            font-size: 38px; 
+            font-weight: 700; 
+            color: #fff; 
+            line-height: 1.3;"
+            >{{ panel.title }}</h2>
           </div>
           <div style="flex: 1.2; min-width: 300px; display: flex; flex-direction: column; gap: 20px;" v-if="panel.description">
             <div style="padding: 30px; border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; background: rgba(255, 255, 255, 0.03); transition: 0.3s;" onmouseover="this.style.borderColor='var(--cyan)';" onmouseout="this.style.borderColor='rgba(255, 255, 255, 0.1)';">
@@ -370,10 +391,15 @@ onMounted(() => {
     </div> 
 
     <section id="latar-belakang-skill" style="margin-top: 60px;">
-      <div class="sec-head reveal">
-        <div><div class="sec-title" style="text-transform: uppercase;">{{ profile?.about_sub_2 || 'LATAR BELAKANG & SKILL' }}</div></div>
+     
+      <div class="sec-head reveal"> <!-- div -->
+        <div><div class="sec-title" style="text-transform: uppercase;">
+          {{ profile?.about_sub_2 || 'LATAR BELAKANG & SKILL' }}
+        </div>
+        </div>
+
         <div class="sec-desc">{{ profile?.about_2 || 'Dokumentasi kegiatan pemrograman web, desain UI/UX, dan organisasi sosial.' }}</div>
-      </div>
+      </div> <!--div -->
       
       <div class="cards" id="skillsGridContainer">
         <div v-for="(item, index) in displayKeahlian" :key="item.id || index" 
@@ -499,7 +525,8 @@ onMounted(() => {
       <div class="footer-title">Mari wujudkan ide<br>digital <span class="grad-text">berikutnya.</span></div>
       <a href="#contact" class="footer-cta" data-magnet>Hubungi Saya &rarr;</a>
       <div class="footer-links">
-        <a :href="`mailto:${profile?.email || ''}`"><i class="fas fa-envelope"></i> {{ profile?.email || '' }}</a>
+        <!-- [DIUBAH] HARDCODE MURNI Email di Footer -->
+        <a href="mailto:yanzewty@gmail.com"><i class="fas fa-envelope"></i> yanzewty@gmail.com</a>
         <a :href="`https://wa.me/62${(profile?.phone || '').replace(/-/g, '').substring(1)}`"><i class="fab fa-whatsapp"></i> {{ profile?.phone || '' }}</a>
         <Link v-if="isAuthenticated" href="/admin" style="color:var(--cyan)">Panel Admin</Link>
         <Link v-else href="/login">Login Admin</Link>

@@ -4,39 +4,42 @@ use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\LoginController;
 use Illuminate\Support\Facades\Route;
 
-// RUTE PUBLIK
+// RUTE PUBLIK contact
 Route::get('/', [PortfolioController::class, 'index'])->name('portofolio.index');
+
+/* Menggunakan nama 'contact_spam' agar hitungannya tidak bercampur dengan login */
 Route::post('/contact/send', [PortfolioController::class, 'storeMessage'])
     ->name('contact.send')
-    ->middleware('throttle:3,5'); 
+    ->middleware('throttle:3,5,contact_spam'); 
 
 // RUTE LOGIN & OTP
 Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
 
-/* alasan ini untuk membatasi 3x salah password dalam 3 menit */
-Route::post('/login', [LoginController::class, 'login'])->middleware('throttle:3,3');
+/* alasan ini untuk membatasi 3x salah password dalam 3 menit (jalur 'login_pwd') */
+Route::post('/login', [LoginController::class, 'login'])
+    ->middleware('throttle:3,3,login_pwd');
 
 /* alasan ini untuk membatasi kirim email OTP pertama agar server email tidak error karena spam */
 Route::post('/login/request-otp', [LoginController::class, 'requestOtp'])
     ->name('login.request-otp')
-    ->middleware('throttle:3,3');
+    ->middleware('throttle:3,3,req_otp');
 
 Route::get('/login/otp', [LoginController::class, 'showLoginOtp'])->name('login.otp');
 
-/*  untuk membatasi tebak angka salah maksimal 3x dalam 3 menit */
+/* untuk membatasi tebak angka salah maksimal 3x dalam 3 menit */
 Route::post('/login/otp', [LoginController::class, 'verifyLoginOtp'])
     ->name('login.otp.verify')
-    ->middleware('throttle:3,3');
+    ->middleware('throttle:3,3,verify_otp');
 
 /* alasan ini untuk memberi jeda pada tombol kirim ulang OTP (Resend) */
 Route::post('/login/otp/resend', [LoginController::class, 'resendOtp'])
     ->name('login.otp.resend')
-    ->middleware('throttle:3,3');
+    ->middleware('throttle:3,3,resend_otp');
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 
-// RUTE ADMIN (Wajib Login)
+// RUTE ADMIn
 Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::get('/', [PortfolioController::class, 'dashboard'])->name('admin.dashboard');
 

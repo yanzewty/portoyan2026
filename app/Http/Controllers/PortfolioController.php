@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Profile;
-use App\Models\Message;
+use App\Models\Message; // Wajib ditambahkan agar tabel pesan bisa dibaca
 use App\Models\Project; 
 use App\Models\ProfileAbout;
 use App\Models\Keahlian; 
@@ -14,7 +14,7 @@ use Inertia\Inertia;
 
 class PortfolioController extends Controller
 {
-    // Biar databasenya gak error kalau masih kosong
+    // Mengamankan database dari error saat profil masih kosong pertama kali dijalankan
     private function getOrCreateProfile()
     {
         return Profile::firstOrCreate(
@@ -27,7 +27,7 @@ class PortfolioController extends Controller
         );
     }
 
-    // Nyesuaiin database buat tampilan frontend
+    // Menyesuaikan struktur data backend agar cocok dibaca oleh struktur Vue di frontend
     private function terjemahkanKeInggris($profile)
     {
         if ($profile) {
@@ -42,7 +42,7 @@ class PortfolioController extends Controller
             $profile->badge_2= $profile->teks_badge_2;
             $profile->skills = $profile->skills;
             
-            // Tarik data header pengalaman
+            // Tarik data judul untuk bagian pengalaman organisasi
             $orgHeaderObj = ProfileAbout::where('profile_id', $profile->id)->where('is_main', 3)->first();
             $profile->education = json_encode([
                 'tag' => $orgHeaderObj->tag ?? '04 / PENGALAMAN ORGANISASI',
@@ -50,7 +50,7 @@ class PortfolioController extends Controller
                 'desc' => $orgHeaderObj->description ?? 'Peran yang membentuk cara saya bekerja dalam tim dan mengambil keputusan.'
             ]);
             
-            // Tarik list organisasi
+            // Tarik seluruh daftar organisasi
             $orgs = Organization::where('profile_id', $profile->id)->get()->map(function ($org) {
                 return [
                     'instansi'  => $org->nama_organisasi,
@@ -64,13 +64,13 @@ class PortfolioController extends Controller
         return $profile;
     }
 
-    // Nampilin halaman utama pengunjung
+    // Menampilkan halaman utama portofolio pengunjung (publik)
     public function index()
     {
         $profile = $this->getOrCreateProfile();
         $this->terjemahkanKeInggris($profile);
 
-        // Ambil semua data pendukung
+        // Mengambil semua data pendukung dari database
         $projects = Project::latest()->get(); 
         $dataKeahlian = Keahlian::oldest()->get(); 
 
@@ -103,13 +103,13 @@ class PortfolioController extends Controller
         ]);
     }
 
-    // Tampilan dashboard admin
+    // Menampilkan halaman dashboard utama admin
     public function dashboard()
     {
         $profile = $this->getOrCreateProfile();
         $this->terjemahkanKeInggris($profile);
 
-        // Itung total data buat statistik
+        // Menghitung total data untuk statistik di dashboard
         $totalMessages = Message::where('is_read', false)->count();
         $totalKeahlian = Keahlian::count();
         $totalProjects = Project::count();
@@ -122,13 +122,13 @@ class PortfolioController extends Controller
         ]);
     }
 
-    // Form edit beranda admin
+    // Menampilkan form edit profil beranda (admin)
     public function editHome()
     {
         $profile = $this->getOrCreateProfile();
         $this->terjemahkanKeInggris($profile);
 
-        // Rapihin JSON skill
+        // Merapikan string array JSON skill untuk masuk ke dalam input text
         $skillsArray = json_decode($profile->skills, true);
         if (is_array($skillsArray)) {
             if(isset($skillsArray[0]) && is_array($skillsArray[0])) {
@@ -139,7 +139,7 @@ class PortfolioController extends Controller
             }
         }
 
-        // Parse pengalaman dari JSON
+        // Parsing pengalaman dari JSON untuk memecahnya ke kolom-kolom input terpisah
         $experiences = json_decode($profile->experiences, true);
         if (is_array($experiences)) {
             if (isset($experiences[0])) {
@@ -159,7 +159,7 @@ class PortfolioController extends Controller
         return Inertia::render('Admin/Home', ['profile' => $profile]);
     }
 
-    // Simpan data perubahan profil
+    // Memproses dan menyimpan data perubahan profil
     public function updateHome(Request $request)
     {
         $request->validate([
@@ -182,7 +182,7 @@ class PortfolioController extends Controller
             $profile->skills = $request->skills;
         }
 
-        // Setup data organisasi baru
+        // Menyusun kembali data organisasi ke dalam format array untuk disimpan
         $experiences = [];
         for ($i = 1; $i <= 2; $i++) {
             if ($request->filled("exp{$i}_title")) {
@@ -195,7 +195,7 @@ class PortfolioController extends Controller
             }
         }
         
-        // Hapus yang lama, simpen yang baru
+        // Hapus data lama, lalu simpan loop data organisasi yang baru
         if (count($experiences) > 0 || $request->has('exp1_title')) {
             Organization::where('profile_id', $profile->id)->delete();
             
@@ -210,7 +210,7 @@ class PortfolioController extends Controller
             }
         }
 
-        // Upload foto profil kalo ada
+        // Proses unggah foto profil (jika ada file yang dikirim)
         $uploadPath = public_path('uploads');
         if (!file_exists($uploadPath)) { mkdir($uploadPath, 0755, true); }
 
@@ -224,7 +224,7 @@ class PortfolioController extends Controller
             $profile->foto_profil = $filename;
         }
 
-        // Upload galeri 1 sampe 3
+        // Proses unggah gambar galeri (1-3)
         for ($i = 1; $i <= 3; $i++) {
             if ($request->hasFile("gallery_{$i}")) {
                 $colName = "gallery_{$i}";
@@ -242,7 +242,7 @@ class PortfolioController extends Controller
         return redirect()->back()->with('success_msg', 'Data Profil, Skills & Foto berhasil diperbarui!');
     }
 
-    // Nampilin halaman 'About' admin
+    // Menampilkan halaman 'Tentang Saya' di panel admin
     public function editAbout()
     {
         $profile = $this->getOrCreateProfile();
@@ -261,7 +261,7 @@ class PortfolioController extends Controller
         ]); 
     }
 
-    // Simpan tentang saya
+    // Memproses penyimpanan perubahan profil di 'Tentang Saya'
     public function updateAbout(Request $request)
     {
         $profile = $this->getOrCreateProfile();
@@ -278,7 +278,7 @@ class PortfolioController extends Controller
         return redirect()->back()->with('success_msg', 'Data Tentang Saya berhasil diperbarui!');
     }
 
-    // Tambah panel tentang saya
+    // Menyimpan panel paragraf baru ke tabel ProfileAbout
     public function panelStore(Request $request)
     {
         $request->validate([
@@ -300,14 +300,14 @@ class PortfolioController extends Controller
         return redirect()->back()->with('success_msg', 'Berhasil Ditambahkan!');
     }
 
-    // Edit panel 
+    // Menampilkan halaman edit untuk satu panel spesifik
     public function panelEdit($id)
     {
         $panel = ProfileAbout::findOrFail($id); 
         return Inertia::render('Admin/PanelsEdit', ['panel' => $panel]);
     }
 
-    // Simpan hasil editan panel
+    // Menyimpan perubahan dari panel spesifik
     public function panelUpdate(Request $request, $id)
     {
         $panel = ProfileAbout::findOrFail($id); 
@@ -319,14 +319,14 @@ class PortfolioController extends Controller
         return redirect()->route('admin.about')->with('success_msg', 'Berhasil diperbarui!');
     }
 
-    // Hapus panel
+    // Menghapus panel secara permanen
     public function panelDestroy($id)
     {
         ProfileAbout::findOrFail($id)->delete(); 
         return redirect()->back()->with('success_msg', 'Berhasil Dihapus dari website!');
     }
 
-    // Urus organisasi di admin
+    // Menampilkan halaman pengaturan riwayat Organisasi
     public function orgAdmin()
     {
         $profile = $this->getOrCreateProfile();
@@ -348,12 +348,12 @@ class PortfolioController extends Controller
         ]);
     }
 
-    // Update organisasi
+    // Memproses data pembaruan riwayat Organisasi (Replace All)
     public function updateOrgAdmin(Request $request)
     {
         $profile = $this->getOrCreateProfile();
         
-        // Simpen header khusus 
+        // Simpan header bagian organisasi
         ProfileAbout::updateOrCreate(
             ['profile_id' => $profile->id, 'is_main' => 3],
             [
@@ -363,7 +363,7 @@ class PortfolioController extends Controller
             ]
         );
         
-        // Simpen datanya ke tabel
+        // Jika ada list pengalaman, hapus yang lama dan isi yang baru
         if ($request->has('experiences_data')) {
             Organization::where('profile_id', $profile->id)->delete();
             
@@ -387,7 +387,7 @@ class PortfolioController extends Controller
         return redirect()->back()->with('success_msg', 'Header & Jejak Organisasi berhasil diperbarui!');
     }
 
-    // Terima pesan dari pengunjung
+    // Menerima form pesan kontak (Contact Us) dari sisi pengunjung
     public function storeMessage(Request $request)
     {
         $request->validate([
@@ -404,21 +404,24 @@ class PortfolioController extends Controller
         }
     }
 
-    // Nampilin list pesan buat admin
+    // PERBAIKAN: Menampilkan halaman kotak masuk (inbox) dengan benar
     public function messagesAdmin()
     {
+        // Mengurutkan pesan dari yang belum dibaca terlebih dahulu
         $messages = Message::orderBy('is_read', 'asc')->latest()->get();
+
+        // Sebelumnya rute ini salah diarahkan ke Admin/Home. Sekarang sudah Admin/Messages
         return Inertia::render('Admin/Messages', ['messages' => $messages]); 
     }
 
-    // Hapus pesan spesifik
+    // Menghapus pesan secara individu
     public function deleteMessage($id)
     {
         Message::findOrFail($id)->delete();
         return redirect()->back()->with('success_msg', 'Pesan berhasil dihapus!'); 
     }
 
-    // Tandai udah dibaca
+    // Menandai satu pesan telah dibaca (Read)
     public function markAsRead($id)
     {
         $message = Message::findOrFail($id);
@@ -427,14 +430,14 @@ class PortfolioController extends Controller
         return back()->with('success_msg', 'Pesan ditandai sudah dibaca.');
     }
 
-    // Tandai semua dibaca langsung
+    // Menandai semua pesan telah dibaca (Read All)
     public function markAllAsRead()
     {
         Message::where('is_read', false)->update(['is_read' => true]);
         return back()->with('success_msg', 'Semua pesan telah ditandai sebagai dibaca.');
     }
 
-    // Hapus pesan massal
+    // Menghapus beberapa pesan sekaligus berdasarkan checkbox (Bulk Action)
     public function bulkDeleteMessages(Request $request)
     {
         $ids = $request->ids; 
@@ -447,7 +450,7 @@ class PortfolioController extends Controller
         return back()->withErrors(['message' => 'Tidak ada pesan yang dipilih.']);
     }
 
-    // Tandai dibaca massal
+    // Menandai beberapa pesan telah dibaca berdasarkan checkbox (Bulk Action)
     public function bulkReadMessages(Request $request)
     {
         $ids = $request->ids;
@@ -460,7 +463,7 @@ class PortfolioController extends Controller
         return back()->withErrors(['message' => 'Tidak ada pesan yang dipilih.']);
     }
 
-    // Tambah project baru
+    // Menyimpan pembuatan proyek/portofolio baru beserta lampiran gambarnya
     public function projectStore(Request $request)
     {
         $request->validate([
@@ -479,7 +482,7 @@ class PortfolioController extends Controller
         ]);
     }
 
-    // Hapus project berserta fotonya
+    // Menghapus sebuah proyek sekaligus file fisik gambarnya di direktori uploads
     public function projectDestroy($id)
     {
         $project = Project::findOrFail($id);
@@ -490,10 +493,10 @@ class PortfolioController extends Controller
         return back()->with('success_msg', 'Proyek berhasil dihapus!');
     }
 
-    // Ngelola data latar belakang skill
+    // Menampilkan halaman pengelolaan Latar Belakang Skill (Modul/Kegiatan)
     public function keahlianAdmin()
     {
-        // Seeder dadakan kalau databasenya masih perawan
+        // Menyediakan data awal (seeder darurat) jika tabel masih kosong total
         if (Keahlian::count() == 0) {
             Keahlian::create(['modul' => 'MODULE / 01', 'judul' => 'Pemrograman Web & Laravel', 'kategori' => 'DEVELOPMENT', 'gambar' => '']);
             Keahlian::create(['modul' => 'MODULE / 02', 'judul' => 'UI/UX & Poster Digital', 'kategori' => 'DESIGN & UI', 'gambar' => '']);
@@ -510,13 +513,13 @@ class PortfolioController extends Controller
         ]);
     }
 
-    // Update kosong cuma ngirim flash message
+    // Mengelabui request update yang kosong agar tidak melempar error
     public function updateSkillHeader(Request $request)
     {
         return redirect()->back()->with('success_msg', 'Proses update mode aman berhasil!');
     }
 
-    // Tambah skill baru
+    // Menyimpan tambahan item Latar Belakang Skill baru
     public function keahlianStore(Request $request)
     {
         $request->validate(['gambar' => 'required|image|max:2048', 'judul'  => 'required']);
@@ -527,7 +530,7 @@ class PortfolioController extends Controller
         $keahlian->kategori = $request->kategori;
         $keahlian->deskripsi = $request->deskripsi;
 
-        // Upload gambar baru
+        // Mengamankan dan mengunggah gambar skill ke folder public
         if ($request->hasFile('gambar')) {
             $uploadPath = public_path('uploads');
             if (!file_exists($uploadPath)) { mkdir($uploadPath, 0755, true); }
@@ -540,27 +543,30 @@ class PortfolioController extends Controller
         return redirect()->back()->with('success_msg', 'Data Keahlian Baru Berhasil Ditambahkan!');
     }
 
-    // View edit skill
+    // Menampilkan mode edit individual untuk Latar Belakang Skill
     public function keahlianEdit($id)
     {
         $item = Keahlian::findOrFail($id);
         return Inertia::render('Admin/LatarBelakangSkillEdit', ['item' => $item]);
     }
 
-    // Proses update skill
+    // Memproses data perubahan dari form edit Latar Belakang Skill
     public function keahlianUpdate(Request $request, $id)
     {
         $keahlian = Keahlian::findOrFail($id);
         $request->validate(['gambar' => 'nullable|image|max:2048', 'judul'  => 'required']);
+        
         $keahlian->modul     = $request->modul;
         $keahlian->judul     = $request->judul;
         $keahlian->deskripsi = $request->deskripsi;
         $keahlian->kategori  = $request->kategori;
 
-        // Kalo ada foto baru, apus yg lama
+        // Cek jika terdapat unggahan gambar pengganti (baru)
         if ($request->hasFile('gambar')) {
             $uploadPath = public_path('uploads');
             if (!file_exists($uploadPath)) { mkdir($uploadPath, 0755, true); }
+            
+            // Hapus gambar usang untuk menghemat ruang server
             if (!empty($keahlian->gambar) && file_exists($uploadPath . '/' . $keahlian->gambar)) {
                 @unlink($uploadPath . '/' . $keahlian->gambar);
             }
@@ -574,7 +580,7 @@ class PortfolioController extends Controller
         return back();
     }
 
-    // Hapus skill
+    // Menghapus riwayat Latar Belakang Skill beserta lampiran fotonya
     public function keahlianDestroy($id)
     {
         $keahlian = Keahlian::findOrFail($id);
@@ -585,7 +591,7 @@ class PortfolioController extends Controller
         return redirect()->back()->with('success_msg', 'Data Keahlian Berhasil Dihapus!');
     }
 
-    // View bidang skill
+    // Menampilkan halaman panel pengaturan Bidang Keahlian Singkat (Icon Slider)
     public function bidangKeahlianAdmin()
     {
         $headerObj = ProfileAbout::where('is_main', 2)->first();
@@ -603,7 +609,7 @@ class PortfolioController extends Controller
         ]);
     }
 
-    // Simpan editan bidang skill
+    // Memproses data slider Keahlian Singkat (menghapus tabel lama & mengisi dengan JSON baru)
     public function updateBidangKeahlian(Request $request)
     {
         $profile = $this->getOrCreateProfile();
@@ -617,7 +623,7 @@ class PortfolioController extends Controller
             ]
         );
 
-        // Wipe data lama dan masukin yg baru buat skill singkat
+        // Membersihkan tabel lama dan memasukkan rangkaian baris baru dari request data
         if ($request->has('skills_data')) {
             KeahlianSingkat::truncate(); 
             

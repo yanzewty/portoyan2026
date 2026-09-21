@@ -17,6 +17,22 @@ const sortOrder = ref('desc'); // desc = terbaru dulu, asc = terlama dulu
 const selectedIds = ref([]);
 const viewingMessage = ref(null);
 const isModalOpen = ref(false);
+let modalOpenedAt = 0; // waktu modal dibuka, dipakai untuk mengabaikan klik kedua dari double-click
+
+// Notif sukses dari backend: tampil 3 detik lalu hilang sendiri
+const flashMsg = ref('');
+let flashTimer = null;
+watch(
+    () => page.props.flash, // objek baru di tiap response, jadi pesan yang sama berturut-turut tetap terdeteksi
+    (flash) => {
+        const msg = flash?.success_msg;
+        if (!msg) return;
+        flashMsg.value = msg;
+        if (flashTimer) clearTimeout(flashTimer);
+        flashTimer = setTimeout(() => { flashMsg.value = ''; }, 3000);
+    },
+    { immediate: true }
+);
 
 // Modal konfirmasi custom (pengganti confirm() bawaan browser)
 const confirmState = ref({ show: false, message: '', onConfirm: null });
@@ -180,8 +196,10 @@ const applyBulkAction = (actionType) => {
 // AKSI PER PESAN
 // ==========================================
 const readMessage = (msg) => {
+    if (isModalOpen.value) return; // modal sudah terbuka, abaikan klik berikutnya (double-click)
     viewingMessage.value = msg;
     isModalOpen.value = true;
+    modalOpenedAt = Date.now();
     if (!msg.is_read) router.post(`/admin/messages/${msg.id}/read`, {}, inertiaOpts);
 };
 
@@ -213,9 +231,18 @@ const deleteFromModal = () => {
 
 const markAllRead = () => router.post('/admin/messages/read-all', {}, inertiaOpts);
 
+// Sengaja TIDAK mengosongkan viewingMessage pakai setTimeout lagi:
+// timer lama bisa "menyusul" dan menghapus pesan saat modal sudah dibuka ulang (kotak modal jadi hilang, layar tinggal blur).
+// Saat tertutup, modal sudah tak terlihat dan tak bisa diklik (opacity 0 + pointer-events none).
 const closeModal = () => {
     isModalOpen.value = false;
-    setTimeout(() => { viewingMessage.value = null; }, 300);
+};
+
+// Klik di area gelap: abaikan kalau datang < 400ms setelah modal dibuka,
+// karena itu klik kedua dari double-click yang jatuh di backdrop dan langsung menutup modal.
+const onBackdropClick = () => {
+    if (Date.now() - modalOpenedAt < 400) return;
+    closeModal();
 };
 
 // ==========================================
@@ -247,8 +274,8 @@ const getAvatarColor = (name) => {
                 
             </header>
 
-            <div v-if="$page.props.flash?.success_msg" class="alert-success">
-                <i class='bx bx-check-circle'></i> {{ $page.props.flash.success_msg }}
+            <div v-if="flashMsg" class="alert-success">
+                <i class='bx bx-check-circle'></i> {{ flashMsg }}
             </div>
             <div v-if="$page.props.errors?.message" class="alert-error">
                 <i class='bx bx-error-circle'></i> {{ $page.props.errors.message }}
@@ -388,7 +415,7 @@ const getAvatarColor = (name) => {
         </main>
 
         <!-- MODAL BACA PESAN -->
-        <div class="modal-backdrop" :class="{ 'modal-show': isModalOpen }" @click="closeModal">
+        <div class="modal-backdrop" :class="{ 'modal-show': isModalOpen }" @click="onBackdropClick">
             <div class="modal-box modal-lg" @click.stop v-if="viewingMessage">
                 <div class="modal-header">
                     <div class="modal-header-title">
@@ -647,10 +674,16 @@ const getAvatarColor = (name) => {
     .saas-toolbar { flex-direction: column; align-items: stretch; }
     .filter-tabs { overflow-x: auto; }
     .saas-search { max-width: 100%; }
-    .saas-pagination { flex-direction: column; align-items: stretch; text-align: center; }
-    .selection-bar { flex-direction: column; align-items: stretch; }
+    .saas-pagination { flex-direction: 
+    column; 
+    align-items: stretch; 
+    text-align: center; }
+
+    .selection-bar { flex-direction: column;
+         align-items: stretch; }
     .selection-actions { justify-content: stretch; }
-    .selection-actions button { flex: 1; justify-content: center; }
+    .selection-actions button { flex: 1;
+justify-content: center; }
     .modal-footer { flex-direction: column; }
     .btn-modal-danger { margin-left: 0; }
 }

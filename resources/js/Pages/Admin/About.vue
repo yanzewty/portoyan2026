@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { Head, Link, useForm, router, usePage } from '@inertiajs/vue3';
 
 // Tarik data profil sama dari database
@@ -12,13 +12,22 @@ const props = defineProps({
 const page = usePage();
 const showSuccessToast = ref(false);
 const toastMessage = ref('');
+let toastTimer = null;
 
 // Munculin notif sukses di pojok, ilang sendiri pas 3 detik
 const showToast = (message) => {
     toastMessage.value = message;
     showSuccessToast.value = true;
-    setTimeout(() => { showSuccessToast.value = false; }, 3000);
+    if (toastTimer) clearTimeout(toastTimer); // reset timer kalau toast dipanggil berturut-turut
+    toastTimer = setTimeout(() => { showSuccessToast.value = false; }, 3000);
 };
+
+// Kalau backend kirim flash 'success_msg', tampilkan lewat toast yang sama (ikut hilang otomatis)
+watch(
+    () => page.props.flash,
+    (flash) => { if (flash?.success_msg) showToast(flash.success_msg); },
+    { immediate: true }
+);
 
 // Buat nampilin atau nyembunyiin pop-up konfirmasi hapus
 const showDeleteModal = ref(false);
@@ -32,11 +41,37 @@ const formAbout = useForm({
     about_1: props.about?.description || ''
 });
 
-// Lempar editan teks utama ke backend biar disimpen
+// Snapshot isi form teks utama, dipakai buat ngecek ada perubahan atau nggak
+const aboutSnapshot = () => JSON.stringify({
+    about_sub_1: formAbout.about_sub_1,
+    about_title: formAbout.about_title,
+    about_1: formAbout.about_1
+});
+
+// Titik acuan = kondisi terakhir yang udah tersimpan (Batal bakal balik ke sini)
+const aboutSaved = ref(aboutSnapshot());
+const isAboutDirty = computed(() => aboutSnapshot() !== aboutSaved.value);
+
+// Batalin editan teks utama yang belum disimpan
+const cancelAbout = () => {
+    const saved = JSON.parse(aboutSaved.value);
+    formAbout.about_sub_1 = saved.about_sub_1;
+    formAbout.about_title = saved.about_title;
+    formAbout.about_1 = saved.about_1;
+    formAbout.clearErrors();
+};
+
+// Lempar editan teks utama ke backend biar disimpen (cuma jalan kalau ada yang berubah)
 const submitAbout = () => {
+    if (!isAboutDirty.value || formAbout.processing) return;
+
     formAbout.post('/admin/about', {
         preserveScroll: true,
-        onSuccess: () => showToast('Teks utama Tentang Saya berhasil diperbarui!')
+        preserveState: true, // form nggak di-reset paksa, jadi toast & status tombol tetap konsisten
+        onSuccess: () => {
+            aboutSaved.value = aboutSnapshot(); // kondisi sekarang jadi titik acuan baru
+            showToast(page.props.flash?.success_msg || 'Teks utama Tentang Saya berhasil diperbarui!');
+        }
     });
 };
 
@@ -47,13 +82,27 @@ const formPanel = useForm({
     desc_1: ''
 });
 
+// Tombol "Tambahkan" cuma aktif kalau ada isian yang keisi
+const isPanelDirty = computed(() =>
+    formPanel.tag.trim() !== '' || formPanel.title.trim() !== '' || formPanel.desc_1.trim() !== ''
+);
+
+// Batalin isian cerita baru (kosongin lagi)
+const cancelPanel = () => {
+    formPanel.reset();
+    formPanel.clearErrors();
+};
+
 // Lempar data cerita baru ke backend trus kosongin formnya lagi
 const submitPanel = () => {
+    if (!isPanelDirty.value || formPanel.processing) return;
+
     formPanel.post('/admin/panels', {
         preserveScroll: true,
+        preserveState: true,
         onSuccess: () => {
             formPanel.reset();
-            showToast('Data berhasil ditambahkan!'); // Teks diubah
+            showToast(page.props.flash?.success_msg || 'Data berhasil ditambahkan!');
         }
     });
 };
@@ -143,7 +192,14 @@ const executeDelete = () => {
                     </div>
                     
                     <div class="submit-wrap">
-                        <button type="submit" class="submit-btn" :disabled="formAbout.processing">
+                        <span class="dirty-note" :class="{ 'is-dirty': isAboutDirty }">
+                            <i :class="isAboutDirty ? 'bx bxs-circle' : 'bx bx-check-circle'"></i>
+                            {{ isAboutDirty ? 'Ada perubahan yang belum disimpan' : 'Belum ada perubahan' }}
+                        </span>
+                        <button type="button" class="cancel-btn" v-if="isAboutDirty" @click="cancelAbout" :disabled="formAbout.processing">
+                            <i class='bx bx-undo'></i> Batal
+                        </button>
+                        <button type="submit" class="submit-btn" :disabled="!isAboutDirty || formAbout.processing">
                             <i :class="formAbout.processing ? 'bx bx-loader-alt bx-spin' : 'bx bx-save'"></i> 
                             {{ formAbout.processing ? 'Menyimpan...' : 'Simpan Teks Utama' }}
                         </button>
@@ -175,10 +231,15 @@ const executeDelete = () => {
                             <textarea v-model="formPanel.desc_1" rows="4" placeholder="Tuliskan isinya di sini..." required></textarea>
                         </div>
                         
-                        <button type="submit" class="btn-add-solid" :disabled="formPanel.processing">
-                            <i :class="formPanel.processing ? 'bx bx-loader-alt bx-spin' : 'bx bx-plus'"></i> 
-                            {{ formPanel.processing ? 'Menambahkan...' : 'Tambahkan ke Daftar' }}
-                        </button>
+                        <div class="form-actions">
+                            <button type="button" class="cancel-btn" v-if="isPanelDirty" @click="cancelPanel" :disabled="formPanel.processing">
+                                <i class='bx bx-undo'></i> Batal
+                            </button>
+                            <button type="submit" class="btn-add-solid" :disabled="!isPanelDirty || formPanel.processing">
+                                <i :class="formPanel.processing ? 'bx bx-loader-alt bx-spin' : 'bx bx-plus'"></i> 
+                                {{ formPanel.processing ? 'Menambahkan...' : 'Tambahkan ke Daftar' }}
+                            </button>
+                        </div>
                     </form>
                 </div>
 
@@ -229,9 +290,9 @@ const executeDelete = () => {
         </div>
 
         <!-- Kotak ijo notif sukses di pojok atas -->
-        <div class="toast" :class="{'toast-show': showSuccessToast || $page.props.flash?.success_msg}">
+        <div class="toast" :class="{'toast-show': showSuccessToast}">
             <div class="toast-icon"><i class='bx bx-check-circle'></i></div>
-            <div class="toast-text">{{ toastMessage || $page.props.flash?.success_msg }}</div>
+            <div class="toast-text">{{ toastMessage }}</div>
         </div>
 
     </div>
@@ -310,11 +371,20 @@ input:focus, textarea:focus { outline: none; border-color: var(--cyan); box-shad
    }
 }
 
-.submit-wrap { display: flex; justify-content: flex-end; margin-top: 20px; }
+.submit-wrap { display: flex; justify-content: flex-end; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+.dirty-note { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--dim); margin-right: auto; }
+.dirty-note.is-dirty { color: var(--gold); font-weight: 600; }
+.dirty-note .bxs-circle { font-size: 8px; }
+.cancel-btn { padding: 14px 24px; background: transparent; border: 1px solid var(--line); color: var(--text); border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s; }
+.cancel-btn:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); background: rgba(255, 95, 86, 0.08); }
+.cancel-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.form-actions { display: flex; gap: 12px; }
+.form-actions .btn-add-solid { flex: 1; width: auto; }
 .submit-btn { width: auto; padding: 14px 32px; border: none; border-radius: 12px; cursor: pointer; background: var(--primary); color: #fff; font-size: 14px; font-weight: 700; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; letter-spacing: 0.5px;}
 .submit-btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(55, 99, 224, 0.4); }
 .btn-add-solid { width: 100%; padding: 14px; background: rgba(78,155,224,0.1); color: var(--cyan); border: 1px solid rgba(78,155,224,0.3); border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; }
 .btn-add-solid:hover:not(:disabled) { background: var(--cyan); color: #000; }
+.submit-btn:disabled, .btn-add-solid:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
 
 .empty-state {
   text-align: center;

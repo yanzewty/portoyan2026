@@ -1,11 +1,13 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 
 // Menerima data props profil yang dikirim dari backend Laravel
 const props = defineProps({
     profile: { type: Object, default: () => ({}) }
 });
+
+const page = usePage();
 
 // Path foto default jika profil belum memiliki foto
 const defaultPhoto = '/uploads/1786586192_profil_IMG_20260707_112708_146.jpg';
@@ -18,87 +20,177 @@ const form = useForm({
     address: props.profile?.address || 'Perumahan Palempertiwi, Menganti, Gresik, Jawa Timur',
     badge_1: props.profile?.badge_1 || 'Tersedia untuk Kolaborasi',
     badge_2: props.profile?.badge_2 || 'Web Developer',
-    skills: '', 
+    skills: '',
     email: props.profile?.email || 'yanzewty@gmail.com',
     phone: props.profile?.phone || '0882-3592-1495',
     photo: null,
 });
 
-// State reaktif untuk menampung daftar keahlian dinamis (teks berjalan)
-const dynamicSkills = ref([]);
+// ==========================================
+// DAFTAR KEAHLIAN (TEKS BERJALAN)
+// ==========================================
+let rowId = 0; // id unik untuk tiap baris agar :key di v-for tidak pernah kembar
 
-// Mengambil dan memparsing data skill dari database saat komponen pertama kali dimuat
-onMounted(() => {
-    let sk = props.profile?.skills;
-    if (!sk) {
-        dynamicSkills.value = [{ id: 1, name: 'HTML' }, { id: 2, name: 'CSS' }, { id: 3, name: 'Laravel' }];
-        return;
-    }
-    
+// Mengubah data skill dari database (JSON atau teks dipisah koma) menjadi array nama
+const parseSkills = (raw) => {
+    if (!raw) return ['HTML', 'CSS', 'Laravel'];
+    if (Array.isArray(raw)) return raw.map(item => String(item?.name ?? item ?? '').trim()).filter(n => n !== '');
+
     try {
-        let parsed = JSON.parse(sk);
+        const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
-            dynamicSkills.value = parsed.map((item, i) => ({ id: Date.now()+i, name: item.name || item }));
-            return;
+            return parsed.map(item => String(item?.name ?? item ?? '').trim()).filter(n => n !== '');
         }
-    } catch(e) {}
+    } catch (e) {}
 
-    dynamicSkills.value = sk.split(',').map((s, i) => ({ id: Date.now()+i, name: s.trim() })).filter(s => s.name !== '');
-    if(dynamicSkills.value.length === 0) dynamicSkills.value.push({ id: Date.now(), name: '' });
-});
+    return String(raw).split(',').map(s => s.trim()).filter(s => s !== '');
+};
 
-// Fungsi untuk menambah dan menghapus baris item keahlian berjalan
-const addSkill = () => dynamicSkills.value.push({ id: Date.now(), name: '' });
+// Mengubah array nama menjadi baris input (selalu ada minimal 1 baris kosong agar form tidak hampa)
+const toRows = (names) => {
+    const rows = names.map(name => ({ id: ++rowId, name }));
+    if (rows.length === 0) rows.push({ id: ++rowId, name: '' });
+    return rows;
+};
+
+const dynamicSkills = ref(toRows(parseSkills(props.profile?.skills)));
+
+const addSkill = () => dynamicSkills.value.push({ id: ++rowId, name: '' });
 const removeSkill = (index) => dynamicSkills.value.splice(index, 1);
 
-// State untuk pratinjau foto, notifikasi toast, dan modal peringatan
-const photoPreview = ref(props.profile?.photo ? `/uploads/${props.profile.photo}` : defaultPhoto);
+// ==========================================
+// DETEKSI PERUBAHAN (tombol Simpan hanya aktif kalau ada yang berubah)
+// ==========================================
+// Foto dipisah dari snapshot teks karena berupa File, bukan teks
+const currentState = () => JSON.stringify({
+    name: form.name,
+    role: form.role,
+    about: form.about,
+    address: form.address,
+    badge_1: form.badge_1,
+    badge_2: form.badge_2,
+    // baris kosong diabaikan karena tidak ikut tersimpan
+    skills: dynamicSkills.value.map(s => s.name.trim()).filter(n => n !== ''),
+});
+
+// "Titik acuan" = kondisi terakhir yang sudah tersimpan. Batal akan mengembalikan form ke sini.
+const savedState = ref(currentState());
+
+const isDirty = computed(() => form.photo !== null || currentState() !== savedState.value);
+
+// ==========================================
+// FOTO PROFIL
+// ==========================================
+const photoInput = ref(null);
+const savedPhotoUrl = ref(props.profile?.photo ? `/uploads/${props.profile.photo}` : defaultPhoto);
+const photoPreview = ref(savedPhotoUrl.value);
+
+// State untuk notifikasi toast dan modal peringatan
 const showSuccessToast = ref(false);
+const toastMessage = ref('');
+let toastTimer = null;
 const modalAlert = ref({ show: false, title: '', message: '' });
+
+// Notif sukses: muncul 3 detik lalu hilang sendiri
+const showToast = (message) => {
+    toastMessage.value = message;
+    showSuccessToast.value = true;
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { showSuccessToast.value = false; }, 3000);
+};
+
+// Kalau backend mengirim flash 'success_msg', tampilkan lewat toast yang sama (ikut hilang otomatis)
+watch(
+    () => page.props.flash,
+    (flash) => { if (flash?.success_msg) showToast(flash.success_msg); },
+    { immediate: true }
+);
+
+// Membuang pratinjau sementara (blob) supaya tidak menumpuk di memori
+const discardPreviewBlob = () => {
+    if (photoPreview.value.startsWith('blob:') && photoPreview.value !== savedPhotoUrl.value) {
+        URL.revokeObjectURL(photoPreview.value);
+    }
+};
 
 // Fungsi untuk menangani validasi dan pratinjau unggahan foto baru
 const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     const validImageTypes = ['image/jpeg', 'image/png', 'image/jpg'];
     if (!validImageTypes.includes(file.type)) {
-        modalAlert.value = { 
-            show: true, 
-            title: 'Format Tidak Valid', 
-            message: 'Silakan pilih file gambar (JPG, JPEG, PNG).' 
+        modalAlert.value = {
+            show: true,
+            title: 'Format Tidak Valid',
+            message: 'Silakan pilih file gambar (JPG, JPEG, PNG).'
         };
-        e.target.value = ''; 
+        e.target.value = '';
         return;
     }
 
-    if (file.size > 2 * 1024 * 1024) { 
-        modalAlert.value = { 
-            show: true, 
-            title: 'File Terlalu Besar', 
-            message: 'Ukuran foto maksimal 2MB.' 
+    if (file.size > 2 * 1024 * 1024) {
+        modalAlert.value = {
+            show: true,
+            title: 'File Terlalu Besar',
+            message: 'Ukuran foto maksimal 2MB.'
         };
-        e.target.value = ''; 
-        return; 
+        e.target.value = '';
+        return;
     }
-    
+
+    discardPreviewBlob();
     form.photo = file;
     photoPreview.value = URL.createObjectURL(file);
 };
 
+// ==========================================
+// BATAL & SIMPAN
+// ==========================================
+// Membatalkan semua perubahan yang belum disimpan, form kembali ke kondisi tersimpan terakhir
+const cancelChanges = () => {
+    const saved = JSON.parse(savedState.value);
+    ['name', 'role', 'about', 'address', 'badge_1', 'badge_2'].forEach(key => { form[key] = saved[key]; });
+    dynamicSkills.value = toRows(saved.skills);
+
+    discardPreviewBlob();
+    form.photo = null;
+    photoPreview.value = savedPhotoUrl.value;
+    if (photoInput.value) photoInput.value.value = '';
+
+    form.clearErrors();
+};
+
 // Fungsi untuk memformat data skill ke JSON lalu mengirimkan data form ke server
 const submit = () => {
+    if (!isDirty.value || form.processing) return; // tidak ada yang berubah = tidak perlu kirim
+
     const skillsArray = dynamicSkills.value
         .filter(s => s.name.trim() !== '')
         .map(s => ({ name: s.name.trim() }));
-        
+
     form.skills = JSON.stringify(skillsArray);
-    
+
     form.post('/admin/home/update', {
         preserveScroll: true,
+        preserveState: true, // form tidak di-reset paksa, jadi toast & kondisi form tetap terkendali
         onSuccess: () => {
-            showSuccessToast.value = true;
-            setTimeout(() => { showSuccessToast.value = false; }, 3000);
+            // Rapikan baris kosong, lalu jadikan kondisi sekarang sebagai titik acuan baru
+            dynamicSkills.value = toRows(skillsArray.map(s => s.name));
+            savedState.value = currentState();
+
+            form.photo = null;
+            savedPhotoUrl.value = photoPreview.value;
+            if (photoInput.value) photoInput.value.value = '';
+
+            showToast(page.props.flash?.success_msg || 'Perubahan profil berhasil disimpan.');
+        },
+        onError: (errors) => {
+            modalAlert.value = {
+                show: true,
+                title: 'Gagal Menyimpan',
+                message: Object.values(errors)[0] || 'Terjadi kesalahan saat menyimpan. Coba lagi.'
+            };
         }
     });
 };
@@ -230,10 +322,19 @@ const submit = () => {
 
                         <!-- Tombol Aksi Simpan -->
                         <div class="submit-area">
-                            <button type="submit" class="btn-save" :disabled="form.processing">
-                   <i :class="form.processing ? 'bx bx-loader-alt bx-spin' : 'bx bx-save'"></i> 
-       {{ form.processing ? 'Menyimpan...' : 'Simpan Semua Perubahan' }}
-                </button>
+                            <p class="dirty-note" :class="{ 'is-dirty': isDirty }">
+                                <i :class="isDirty ? 'bx bxs-circle' : 'bx bx-check-circle'"></i>
+                                {{ isDirty ? 'Ada perubahan yang belum disimpan' : 'Belum ada perubahan' }}
+                            </p>
+                            <div class="submit-buttons">
+                                <button type="button" class="btn-cancel" v-if="isDirty" @click="cancelChanges" :disabled="form.processing">
+                                    <i class='bx bx-undo'></i> Batal
+                                </button>
+                                <button type="submit" class="btn-save" :disabled="!isDirty || form.processing">
+                                    <i :class="form.processing ? 'bx bx-loader-alt bx-spin' : 'bx bx-save'"></i>
+                                    {{ form.processing ? 'Menyimpan...' : 'Simpan Semua Perubahan' }}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -243,9 +344,9 @@ const submit = () => {
         </main>
 
         <!-- Notifikasi Toast Berhasil -->
-        <div class="toast" :class="{'toast-show': showSuccessToast || $page.props.flash?.success_msg}">
+        <div class="toast" :class="{'toast-show': showSuccessToast}">
             <div class="toast-icon"><i class='bx bx-check'></i></div>
-            <div class="toast-text">{{ $page.props.flash?.success_msg || 'Perubahan profil berhasil disimpan.' }}</div>
+            <div class="toast-text">{{ toastMessage }}</div>
         </div>
 
         <!-- Modal Peringatan Validasi -->
@@ -357,9 +458,17 @@ const submit = () => {
 .btn-add:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
 
 .submit-area { margin-top: auto; padding-top: 10px;}
-.btn-save { width: 100%; padding: 16px; background: var(--primary); color: #fff; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; font-family: 'Sora', sans-serif; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.3s; box-shadow: 0 8px 20px rgba(124, 58, 237, 0.25); }
+.btn-save { flex: 1; padding: 16px; background: var(--primary); color: #fff; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; font-family: 'Sora', sans-serif; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.3s; box-shadow: 0 8px 20px rgba(124, 58, 237, 0.25); }
 .btn-save:hover:not(:disabled) { background: var(--primary-hover); transform: translateY(-3px); box-shadow: 0 12px 25px rgba(124, 58, 237, 0.35); }
-.btn-save:disabled { opacity: 0.7; cursor: not-allowed; }
+.btn-save:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; }
+
+.submit-buttons { display: flex; gap: 12px; }
+.btn-cancel { padding: 16px 22px; background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-soft); border-radius: 12px; font-size: 14px; font-weight: 700; font-family: 'Sora', sans-serif; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: 0.3s; }
+.btn-cancel:hover:not(:disabled) { border-color: var(--danger); color: var(--danger); background: var(--danger-light); }
+.btn-cancel:disabled { opacity: 0.5; cursor: not-allowed; }
+.dirty-note { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); margin: 0 0 10px 0; }
+.dirty-note.is-dirty { color: #D97706; font-weight: 600; }
+.dirty-note .bxs-circle { font-size: 8px; }
 
 /* Bagian bawah (Toast & Modal) dibuat rapi berjenjang agar mudah dipahami struktur animasinya */
 .toast {

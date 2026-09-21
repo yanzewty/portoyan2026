@@ -248,7 +248,7 @@ const submit = () => {
                                     <input type="text" v-model="form.name" required placeholder="Contoh: Alfiansyah Ibdani">
                                 </div>
                                 <div class="input-group">
-                                    <label>Role / Posisi</label>
+                                    <label>Posisi</label>
                                     <input type="text" v-model="form.role" required placeholder="Contoh: IT ENGINEERING">
                                 </div>
                             </div>

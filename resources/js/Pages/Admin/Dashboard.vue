@@ -43,6 +43,8 @@ onMounted(() => {
                 <span class="collapse-text">Menu</span>
             </button>
 
+
+                <!-- menu untuk icon nya  -->
             <div class="menu-label">MENU UTAMA</div>
             <nav class="sidebar-nav">
                 <Link href="/admin" class="nav-item active" style="--i:1">
@@ -75,11 +77,8 @@ onMounted(() => {
                     <span class="nav-text">Organisasi</span>
                     <div class="tooltip">Organisasi</div>
                 </Link>
-                <Link href="/admin/projects" class="nav-item" style="--i:7">
-                    <i class='bx bx-briefcase'></i> 
-                    <span class="nav-text">Proyek</span>
-                    <div class="tooltip">Proyek</div>
-                </Link>
+               
+                
                 <Link href="/admin/messages" class="nav-item" style="--i:8">
                     <i class='bx bx-envelope'></i> 
                     <span class="nav-text">Pesan Masuk</span>

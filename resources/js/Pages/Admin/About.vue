@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { Head, Link, useForm, router, usePage } from '@inertiajs/vue3';
 
-// Tarik data profil sama panel dari database
+// Tarik data profil sama dari database
 const props = defineProps({
     profile: { type: Object, default: () => ({}) },
     about: { type: Object, default: () => ({}) },
@@ -23,6 +23,7 @@ const showToast = (message) => {
 // Buat nampilin atau nyembunyiin pop-up konfirmasi hapus
 const showDeleteModal = ref(false);
 const panelToDelete = ref(null);
+const isDeleting = ref(false); // Indikator loading tambahan buat tombol hapus
 
 // Form buat nampung teks utama tentang saya
 const formAbout = useForm({
@@ -39,25 +40,25 @@ const submitAbout = () => {
     });
 };
 
-// Form buat nambahin kotak panel cerita baru
+// Form buat nambahin kotak cerita baru
 const formPanel = useForm({
     tag: '',
     title: '',
     desc_1: ''
 });
 
-// Lempar data panel baru ke backend trus kosongin formnya lagi
+// Lempar data cerita baru ke backend trus kosongin formnya lagi
 const submitPanel = () => {
     formPanel.post('/admin/panels', {
         preserveScroll: true,
         onSuccess: () => {
             formPanel.reset();
-            showToast('Panel baru berhasil ditambahkan!');
+            showToast('Data berhasil ditambahkan!'); // Teks diubah
         }
     });
 };
 
-// Nangkep ID panel yang mau dihapus trus munculin pop-up
+// Nangkep ID cerita yang mau dihapus trus munculin pop-up
 const confirmDelete = (id) => {
     panelToDelete.value = id;
     showDeleteModal.value = true;
@@ -65,21 +66,36 @@ const confirmDelete = (id) => {
 
 // Kalau gajadi hapus, tutup lagi pop-up nya
 const cancelDelete = () => {
+    if(isDeleting.value) return; // Cegah nutup kalo lagi proses hapus
     showDeleteModal.value = false;
     panelToDelete.value = null;
 };
 
-// Eksekusi hapus panel ke database kalau diklik 'Ya'
+// Eksekusi hapus data ke database dengan Error Handling
 const executeDelete = () => {
     if (panelToDelete.value) {
+        isDeleting.value = true;
+        
         router.delete(`/admin/panels/${panelToDelete.value}`, {
             preserveScroll: true,
             onSuccess: () => {
-                showToast('Panel berhasil dihapus!');
+                showToast('Data berhasil dihapus!'); // Teks diubah
                 showDeleteModal.value = false;
                 panelToDelete.value = null;
+            },
+            onError: (errors) => {
+                console.error("Gagal menghapus:", errors);
+                showToast('Terjadi kesalahan saat menghapus data.'); // Teks diubah
+                showDeleteModal.value = false; 
+                panelToDelete.value = null;
+            },
+            onFinish: () => {
+                isDeleting.value = false;
             }
         });
+    } else {
+        console.error("Gagal: ID tidak valid (undefined)");
+        showDeleteModal.value = false;
     }
 };
 </script>
@@ -95,12 +111,15 @@ const executeDelete = () => {
                 <div>
                     <Link href="/admin" class="btn-back"><i class='bx bx-arrow-back'></i> Kembali ke Dashboard</Link>
                     <h1 class="page-title">Tentang Saya (About)</h1>
-                    <p class="page-desc">Kelola paragraf utama profil dan tambahkan panel cerita tambahan.</p>
+                    <p class="page-desc">Kelola paragraf utama profil dan tambahkan cerita tambahan.</p> <!-- Teks diubah -->
                 </div>
                 <a href="/#About" target="_blank" class="btn-outline">
                     <i class='bx bx-link-external'></i> Lihat Website
                 </a>
             </div>
+
+            
+
 
             <!-- Kotak isi form paragraf utama -->
             <div class="card-form" style="--accent: var(--primary);">
@@ -132,42 +151,45 @@ const executeDelete = () => {
                 </form>
             </div>
 
-            <!-- Tata letak dua kolom buat nambah dan ngelist panel -->
+
             <div class="panel-grid">
                 
-                <!-- Kotak form khusus bikin panel baru -->
+                <!-- Kotak form khusus bikin cerita baru -->
                 <div class="card-form" style="--accent: var(--cyan); margin-bottom: 0;">
-                    <div class="form-title" style="color: var(--cyan);"><i class='bx bx-plus-circle'></i> Tambah Panel Cerita</div>
-                    <p class="sub-hint">Pecah ceritamu ke dalam panel (contoh: Visi Misi, Fokus).</p>
+
+                    <!-- TEKS DIUBAH DI AREA INI -->
+                    <div class="form-title" style="color: var(--cyan);"><i class='bx bx-plus-circle'></i> Tambah Cerita Baru</div>
+                    <p class="sub-hint">Pecah ceritamu ke dalam beberapa bagian (contoh: Visi Misi, Fokus).</p>
                     
                     <form @submit.prevent="submitPanel">
                         <div class="form-group">
-                            <label>Tag Panel</label>
+                            <label>Tag (Sub-judul)</label>
                             <input type="text" v-model="formPanel.tag" placeholder="Misal: 02 / VISI" required>
                         </div>
                         <div class="form-group">
-                            <label>Judul Panel</label>
+                            <label>Judul</label>
                             <input type="text" v-model="formPanel.title" placeholder="Fokus & Tujuan" required>
                         </div>
                         <div class="form-group">
-                            <label>Isi Deskripsi Panel</label>
-                            <textarea v-model="formPanel.desc_1" rows="4" placeholder="Tuliskan isi panel di sini..." required></textarea>
+                            <label>Isi Deskripsi</label>
+                            <textarea v-model="formPanel.desc_1" rows="4" placeholder="Tuliskan isinya di sini..." required></textarea>
                         </div>
                         
                         <button type="submit" class="btn-add-solid" :disabled="formPanel.processing">
                             <i :class="formPanel.processing ? 'bx bx-loader-alt bx-spin' : 'bx bx-plus'"></i> 
-                            {{ formPanel.processing ? 'Menambahkan...' : 'Tambah Panel Baru' }}
+                            {{ formPanel.processing ? 'Menambahkan...' : 'Tambahkan ke Daftar' }}
                         </button>
                     </form>
                 </div>
 
-                <!-- Menampilkan semua panel yang udah dibikin -->
+                <!-- Menampilkan semua cerita yang udah dibikin -->
                 <div class="card-form" style="--accent: var(--gold); margin-bottom: 0;">
-                    <div class="form-title"><i class='bx bx-list-ul'></i> Daftar Panel Tambahan <span class="badge-count">{{ panels.length }}</span></div>
+                    <!-- TEKS DIUBAH DI AREA INI -->
+                    <div class="form-title"><i class='bx bx-list-ul'></i> Daftar Cerita Tambahan <span class="badge-count">{{ panels.length }}</span></div>
                     
                     <div v-if="panels.length === 0" class="empty-state">
                         <i class='bx bx-folder-open'></i>
-                        <p>Belum ada panel tambahan yang dibuat.</p>
+                        <p>Belum ada cerita tambahan yang dibuat.</p>
                     </div>
 
                     <div v-else class="panel-list">
@@ -179,7 +201,7 @@ const executeDelete = () => {
                             </div>
                             <div class="panel-actions">
                                 <Link :href="`/admin/panels/${panel.id}/edit`" class="btn-edit"><i class='bx bx-edit'></i> Edit</Link>
-                                <button @click="confirmDelete(panel.id)" class="btn-delete"><i class='bx bx-trash'></i> Hapus</button>
+                                <button type="button" @click="confirmDelete(panel.id)" class="btn-delete"><i class='bx bx-trash'></i> Hapus</button>
                             </div>
                         </div>
                     </div>
@@ -190,14 +212,18 @@ const executeDelete = () => {
         </div>
 
         <!-- Tampilan pop-up hitam kalau klik tombol hapus -->
-        <div class="modal-overlay" :class="{'show': showDeleteModal}">
+        <div class="modal-overlay" :class="{'show': showDeleteModal}" @click.self="cancelDelete">
             <div class="modal-card">
                 <div class="modal-icon"><i class='bx bx-trash'></i></div>
-                <h3>Hapus Panel?</h3>
-                <p>Data panel ini akan dihapus secara permanen dan tidak dapat dikembalikan.</p>
+                <!-- TEKS DIUBAH DI AREA INI -->
+                <h3>Hapus Cerita?</h3>
+                <p>Data cerita ini akan dihapus secara permanen dan tidak dapat dikembalikan.</p>
                 <div class="modal-actions">
-                    <button @click="cancelDelete" class="btn-modal-cancel">Batal</button>
-                    <button @click="executeDelete" class="btn-modal-delete">Ya, Hapus</button>
+                    <button type="button" @click="cancelDelete" class="btn-modal-cancel" :disabled="isDeleting">Batal</button>
+                    <button type="button" @click="executeDelete" class="btn-modal-delete" :disabled="isDeleting">
+                        <span v-if="isDeleting"><i class='bx bx-loader-alt bx-spin'></i> Menghapus...</span>
+                        <span v-else>Ya, Hapus</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -212,7 +238,7 @@ const executeDelete = () => {
 </template>
 
 <style scoped>
-/* Pengaturan warna tema dasar web */
+/* Pengaturan warna tema dasar web (Sama seperti sebelumnya) */
 .admin-container {
   --bg: #0A0E17; --panel: #10151F;
    --panel-2: #141B29; --line: #232D3E; 
@@ -227,14 +253,12 @@ const executeDelete = () => {
     position: relative;
 }
 
-/* Biar formnya ga melar sampe ujung layar */
 .wrap-form {
   max-width: 1000px;
    margin: 0 auto;
     padding-bottom: 60px;
 }
 
-/* Tombol link dan judul paling atas */
 .header-flex { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; flex-wrap: wrap; gap: 16px;}
 .btn-back { display: inline-flex; align-items: center; gap: 6px; color: var(--dim); font-size: 13px; text-decoration: none; margin-bottom: 10px; transition: 0.2s;}
 .btn-back:hover { color: var(--cyan); transform: translateX(-4px);}
@@ -243,7 +267,6 @@ const executeDelete = () => {
 .btn-outline { padding: 10px 18px; border: 1px solid var(--line); border-radius: 10px; font-size: 13px; color: var(--text); text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; background: var(--panel);}
 .btn-outline:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(78,155,224,0.1); }
 
-/* Background hitam kotak form */
 .card-form {
   background: var(--panel);
    border: 1px solid var(--line);
@@ -254,7 +277,6 @@ const executeDelete = () => {
    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
-/* Judul kecil di dalem kotak form */
 .form-title {
   font-size: 15px;
    font-weight: 700;
@@ -264,7 +286,6 @@ const executeDelete = () => {
     gap: 8px; text-transform: uppercase; letter-spacing: 0.5px;
 }
 
-/* Kolom inputan teks */
 .form-title i { color: var(--accent); font-size: 20px; }
 .badge-count { background: rgba(201, 162, 74, 0.15); color: var(--gold); padding: 2px 8px; border-radius: 20px; font-size: 12px; margin-left: 6px;}
 .sub-hint { font-size: 13px; color: var(--dim); margin: -10px 0 20px 0; }
@@ -274,14 +295,12 @@ input[type=text], textarea { width: 100%; padding: 14px 16px; background: var(--
 input:focus, textarea:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(78,155,224,0.1);}
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
-/* Bagi layar jadi dua buat panel tambahan */
 .panel-grid {
   display: grid;
    grid-template-columns: 1fr 1.3fr;
     gap: 24px;
 }
 
-/* Kalau layarnya kecil hp, dijadiin satu baris ke bawah */
 @media (max-width: 800px) {
   .panel-grid {
     grid-template-columns: 1fr;
@@ -291,14 +310,12 @@ input:focus, textarea:focus { outline: none; border-color: var(--cyan); box-shad
    }
 }
 
-/* Tombol submit simpan data */
 .submit-wrap { display: flex; justify-content: flex-end; margin-top: 20px; }
 .submit-btn { width: auto; padding: 14px 32px; border: none; border-radius: 12px; cursor: pointer; background: var(--primary); color: #fff; font-size: 14px; font-weight: 700; transition: 0.3s; display: inline-flex; align-items: center; gap: 8px; letter-spacing: 0.5px;}
 .submit-btn:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(55, 99, 224, 0.4); }
 .btn-add-solid { width: 100%; padding: 14px; background: rgba(78,155,224,0.1); color: var(--cyan); border: 1px solid rgba(78,155,224,0.3); border-radius: 12px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; }
 .btn-add-solid:hover:not(:disabled) { background: var(--cyan); color: #000; }
 
-/* Tampilan list kalau belum ada panel sama sekali */
 .empty-state {
   text-align: center;
    padding: 40px 20px;
@@ -320,7 +337,6 @@ input:focus, textarea:focus { outline: none; border-color: var(--cyan); box-shad
     align-items: center;
 }
 
-/* Desain baris item panel yang udah dibikin */
 .panel-list { display: flex; flex-direction: column; gap: 14px; }
 .panel-item { background: var(--panel-2); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; transition: 0.3s; }
 .panel-item:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3);}
@@ -333,7 +349,6 @@ input:focus, textarea:focus { outline: none; border-color: var(--cyan); box-shad
 .btn-delete { background: rgba(255,95,86,0.1); border: 1px solid rgba(255,95,86,0.3); color: var(--danger); padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s; }
 .btn-delete:hover { background: var(--danger); color: #fff; }
 
-/* Desain efek pop-up melayang di tengah */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 14, 23, 0.85); backdrop-filter: blur(5px); z-index: 2000; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: 0.3s; }
 .modal-overlay.show { opacity: 1; visibility: visible; }
 .modal-card { background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--danger); padding: 30px; border-radius: 16px; width: 90%; max-width: 360px; text-align: center; box-shadow: 0 15px 40px rgba(0,0,0,0.4); transform: translateY(20px); transition: 0.3s;}
@@ -343,9 +358,11 @@ input:focus, textarea:focus { outline: none; border-color: var(--cyan); box-shad
 .modal-card p { font-size: 13px; color: var(--dim); line-height: 1.5; margin: 0 0 24px 0; }
 .modal-actions { display: flex; gap: 12px; }
 .btn-modal-cancel { flex: 1; padding: 12px; background: transparent; border: 1px solid var(--line); color: var(--text); border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-.btn-modal-cancel:hover { background: rgba(255,255,255,0.05); }
-.btn-modal-delete { flex: 1; padding: 12px; background: var(--danger); border: none; color: #fff; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(255, 95, 86, 0.2); }
-.btn-modal-delete:hover { background: #e04a42; transform: translateY(-2px); }
+.btn-modal-cancel:hover:not(:disabled) { background: rgba(255,255,255,0.05); }
+.btn-modal-cancel:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-modal-delete { flex: 1; padding: 12px; background: var(--danger); border: none; color: #fff; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(255, 95, 86, 0.2); display: flex; align-items: center; justify-content: center; gap: 8px;}
+.btn-modal-delete:hover:not(:disabled) { background: #e04a42; transform: translateY(-2px); }
+.btn-modal-delete:disabled { opacity: 0.7; cursor: not-allowed; transform: none; box-shadow: none; }
 .toast { position: fixed; top: 30px; right: 30px; background: rgba(16, 21, 31, 0.95); border: 1px solid var(--cyan); color: var(--cyan); padding: 14px 20px; border-radius: 14px; display: flex; align-items: center; gap: 12px; font-size: 13.5px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(78,155,224,0.2); transform: translateY(-100px); opacity: 0; visibility: hidden; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 999; backdrop-filter: blur(8px); }
 .toast.toast-show { transform: translateY(0); opacity: 1; visibility: visible; }
 .toast-icon { font-size: 22px; }

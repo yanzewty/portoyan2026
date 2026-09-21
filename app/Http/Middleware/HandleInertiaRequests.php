@@ -16,13 +16,26 @@ class HandleInertiaRequests extends Middleware
         return parent::version($request);
     }
 
-    
-    // Misalnya buat nampilin flash message sukses/error dari controller
+    // Data yang otomatis dikirim ke SEMUA halaman Vue (bisa dibaca lewat usePage().props / $page.props)
     public function share(Request $request): array
     {
         return [
             ...parent::share($request),
-            // masukin data tambahan di bawah sini kalo butuh
+
+            // Status login: dibaca Portfolio.vue lewat page.props.auth?.user
+            // (kalau null = belum login, kalau ada isi = sudah login).
+            // Sengaja cuma id & name, jangan kirim email/data sensitif ke halaman publik.
+            'auth' => [
+                'user' => $request->user() ? [
+                    'id' => $request->user()->id,
+                    'name' => $request->user()->name,
+                ] : null,
+            ],
+
+            // Flash message dari controller, contoh di controller: ->with('success_msg', 'Berhasil!')
+            'flash' => [
+                'success_msg' => fn () => $request->session()->get('success_msg'),
+            ],
         ];
     }
 }

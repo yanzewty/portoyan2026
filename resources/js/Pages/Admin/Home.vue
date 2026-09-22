@@ -26,9 +26,7 @@ const form = useForm({
     photo: null,
 });
 
-// ==========================================
-// DAFTAR KEAHLIAN (TEKS BERJALAN)
-// ==========================================
+
 let rowId = 0; // id unik untuk tiap baris agar :key di v-for tidak pernah kembar
 
 // Mengubah data skill dari database (JSON atau teks dipisah koma) menjadi array nama
@@ -58,9 +56,7 @@ const dynamicSkills = ref(toRows(parseSkills(props.profile?.skills)));
 const addSkill = () => dynamicSkills.value.push({ id: ++rowId, name: '' });
 const removeSkill = (index) => dynamicSkills.value.splice(index, 1);
 
-// ==========================================
-// DETEKSI PERUBAHAN (tombol Simpan hanya aktif kalau ada yang berubah)
-// ==========================================
+
 // Foto dipisah dari snapshot teks karena berupa File, bukan teks
 const currentState = () => JSON.stringify({
     name: form.name,
@@ -78,9 +74,7 @@ const savedState = ref(currentState());
 
 const isDirty = computed(() => form.photo !== null || currentState() !== savedState.value);
 
-// ==========================================
-// FOTO PROFIL
-// ==========================================
+// info profil
 const photoInput = ref(null);
 const savedPhotoUrl = ref(props.profile?.photo ? `/uploads/${props.profile.photo}` : defaultPhoto);
 const photoPreview = ref(savedPhotoUrl.value);
@@ -106,7 +100,7 @@ watch(
     { immediate: true }
 );
 
-// Membuang pratinjau sementara (blob) supaya tidak menumpuk di memori
+// Membuang pratinjau sementara 
 const discardPreviewBlob = () => {
     if (photoPreview.value.startsWith('blob:') && photoPreview.value !== savedPhotoUrl.value) {
         URL.revokeObjectURL(photoPreview.value);
@@ -144,9 +138,7 @@ const handlePhotoUpload = (e) => {
     photoPreview.value = URL.createObjectURL(file);
 };
 
-// ==========================================
-// BATAL & SIMPAN
-// ==========================================
+// batal & simpan 
 // Membatalkan semua perubahan yang belum disimpan, form kembali ke kondisi tersimpan terakhir
 const cancelChanges = () => {
     const saved = JSON.parse(savedState.value);

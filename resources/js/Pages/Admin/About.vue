@@ -124,18 +124,18 @@ const cancelDelete = () => {
 const executeDelete = () => {
     if (panelToDelete.value) {
         isDeleting.value = true;
-
+        
         router.delete(`/admin/panels/${panelToDelete.value}`, {
             preserveScroll: true,
             onSuccess: () => {
-                showToast('Data berhasil dihapus!'); // Teks diubah
+                showToast('Data berhasil dihapus!'); 
                 showDeleteModal.value = false;
                 panelToDelete.value = null;
             },
             onError: (errors) => {
                 console.error("Gagal menghapus:", errors);
-                showToast('Terjadi kesalahan saat menghapus data.'); // Teks diubah
-                showDeleteModal.value = false;
+                showToast('Terjadi kesalahan saat menghapus data.'); 
+                showDeleteModal.value = false; 
                 panelToDelete.value = null;
             },
             onFinish: () => {
@@ -154,24 +154,25 @@ const executeDelete = () => {
 
     <div class="admin-container">
         <div class="wrap-form">
-
-            // <!-- Bagian atas halaman -->
+            
+            
             <div class="header-flex">
                 <div>
                     <Link href="/admin" class="btn-back"><i class='bx bx-arrow-back'></i> Kembali ke Dashboard</Link>
                     <h1 class="page-title">Tentang Saya (About)</h1>
                     <p class="page-desc">Kelola paragraf utama profil dan tambahkan cerita tambahan.</p> 
-                    // <!-- Teks diubah -->
                 </div>
                 <a href="/#About" target="_blank" class="btn-outline">
                     <i class='bx bx-link-external'></i> Lihat Website
                 </a>
             </div>
 
-            <!-- Kotak isi form paragraf utama -->
+            
+
+
             <div class="card-form" style="--accent: var(--primary);">
                 <div class="form-title"><i class='bx bx-user-pin'></i> Teks Utama Tentang Saya</div>
-
+                
                 <form @submit.prevent="submitAbout">
                     <div class="grid2">
                         <div class="form-group">
@@ -183,12 +184,12 @@ const executeDelete = () => {
                             <input type="text" v-model="formAbout.about_title" placeholder="Membangun Solusi Digital..." required>
                         </div>
                     </div>
-
+                    
                     <div class="form-group">
                         <label>Paragraf Deskripsi</label>
                         <textarea v-model="formAbout.about_1" rows="5" placeholder="Tuliskan cerita singkat tentang dirimu..." required></textarea>
                     </div>
-
+                    
                     <div class="submit-wrap">
                         <span class="dirty-note" :class="{ 'is-dirty': isAboutDirty }">
                             <i :class="isAboutDirty ? 'bx bxs-circle' : 'bx bx-check-circle'"></i>
@@ -198,7 +199,7 @@ const executeDelete = () => {
                             <i class='bx bx-undo'></i> Batal
                         </button>
                         <button type="submit" class="submit-btn" :disabled="!isAboutDirty || formAbout.processing">
-                            <i :class="formAbout.processing ? 'bx bx-loader-alt bx-spin' : 'bx bx-save'"></i>
+                            <i :class="formAbout.processing ? 'bx bx-loader-alt bx-spin' : 'bx bx-save'"></i> 
                             {{ formAbout.processing ? 'Menyimpan...' : 'Simpan Teks Utama' }}
                         </button>
                     </div>
@@ -207,14 +208,14 @@ const executeDelete = () => {
 
 
             <div class="panel-grid">
-
-                {/* <!-- Kotak form khusus bikin cerita baru --> */}
+                
+                
                 <div class="card-form" style="--accent: var(--cyan); margin-bottom: 0;">
 
-                    {/* <!-- TEKS DIUBAH DI AREA INI --> */}
+                   
                     <div class="form-title" style="color: var(--cyan);"><i class='bx bx-plus-circle'></i> Tambah Cerita Baru</div>
                     <p class="sub-hint">Pecah ceritamu ke dalam beberapa bagian (contoh: Visi Misi, Fokus).</p>
-
+                    
                     <form @submit.prevent="submitPanel">
                         <div class="form-group">
                             <label>Tag (Sub-judul)</label>
@@ -228,24 +229,24 @@ const executeDelete = () => {
                             <label>Isi Deskripsi</label>
                             <textarea v-model="formPanel.desc_1" rows="4" placeholder="Tuliskan isinya di sini..." required></textarea>
                         </div>
-
+                        
                         <div class="form-actions">
                             <button type="button" class="cancel-btn" v-if="isPanelDirty" @click="cancelPanel" :disabled="formPanel.processing">
                                 <i class='bx bx-undo'></i> Batal
                             </button>
                             <button type="submit" class="btn-add-solid" :disabled="!isPanelDirty || formPanel.processing">
-                                <i :class="formPanel.processing ? 'bx bx-loader-alt bx-spin' : 'bx bx-plus'"></i>
+                                <i :class="formPanel.processing ? 'bx bx-loader-alt bx-spin' : 'bx bx-plus'"></i> 
                                 {{ formPanel.processing ? 'Menambahkan...' : 'Tambahkan ke Daftar' }}
                             </button>
                         </div>
                     </form>
                 </div>
 
-                {/* <!-- Menampilkan semua cerita yang udah dibikin --> */}
+                
                 <div class="card-form" style="--accent: var(--gold); margin-bottom: 0;">
-                    {/* <!-- TEKS DIUBAH DI AREA INI --> */}
+                    
                     <div class="form-title"><i class='bx bx-list-ul'></i> Daftar Cerita Tambahan <span class="badge-count">{{ panels.length }}</span></div>
-
+                    
                     <div v-if="panels.length === 0" class="empty-state">
                         <i class='bx bx-folder-open'></i>
                         <p>Belum ada cerita tambahan yang dibuat.</p>
@@ -270,12 +271,12 @@ const executeDelete = () => {
 
         </div>
 
-        {/* <!-- Tampilan pop-up hitam kalau klik tombol hapus --> */}
+    
         <div class="modal-overlay" :class="{'show': showDeleteModal}" @click.self="cancelDelete">
             <div class="modal-card">
                 <div class="modal-icon"><i class='bx bx-trash'></i></div>
-
-                <h3>Hapus?</h3>
+                
+                <h3>Hapus Cerita?</h3>
                 <p>Data cerita ini akan dihapus secara permanen dan tidak dapat dikembalikan.</p>
                 <div class="modal-actions">
                     <button type="button" @click="cancelDelete" class="btn-modal-cancel" :disabled="isDeleting">Batal</button>
@@ -287,7 +288,7 @@ const executeDelete = () => {
             </div>
         </div>
 
-        {/* <!-- Kotak ijo notif sukses di pojok atas --> */}
+        
         <div class="toast" :class="{'toast-show': showSuccessToast}">
             <div class="toast-icon"><i class='bx bx-check-circle'></i></div>
             <div class="toast-text">{{ toastMessage }}</div>
@@ -297,10 +298,10 @@ const executeDelete = () => {
 </template>
 
 <style scoped>
-/* Pengaturan warna tema dasar web (Sama seperti sebelumnya) */
+
 .admin-container {
   --bg: #0A0E17; --panel: #10151F;
-   --panel-2: #141B29; --line: #232D3E;
+   --panel-2: #141B29; --line: #232D3E; 
     --text: #EAEEF5; --dim: #8792A6;
   --primary: #3763E0; --cyan: #4E9BE0;
    --gold: #C9A24A; --danger: #FF5F56;

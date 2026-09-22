@@ -237,8 +237,26 @@ onMounted(() => {
 
 .sidebar-nav { padding: 0 15px; display: flex; flex-direction: column; gap: 4px; flex: 1; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; -ms-overflow-style: none; }
 .sidebar-nav::-webkit-scrollbar { display: none; } 
-.nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; position: relative; border-radius: 10px; color: var(--text-muted); text-decoration: none; font-weight: 500; font-size: 13px; transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); border: none; background: transparent; cursor: pointer; width: 100%; white-space: nowrap; animation: slideRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateX(-10px); animation-delay: calc(var(--i) * 0.04s); }
-@keyframes slideRight { to { opacity: 1; transform: translateX(0); } }
+.nav-item { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    padding: 10px 14px; 
+    position: relative; 
+    border-radius: 10px; 
+    color: var(--text-muted); 
+    text-decoration: none; 
+    font-weight: 500; 
+    font-size: 13px; 
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1); 
+    border: none; 
+    background: transparent; 
+    cursor: pointer; 
+    width: 100%; 
+    white-space: nowrap; 
+    opacity: 1; 
+}
+
 .nav-item i { font-size: 18px; min-width: 18px; text-align: center; transition: 0.3s;}
 .nav-item:hover { background-color: var(--bg-app); color: var(--text-main); transform: translateX(5px); }
 .nav-item.active { background-color: var(--primary-light); color: var(--primary); font-weight: 700; }

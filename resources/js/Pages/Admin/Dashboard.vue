@@ -235,7 +235,19 @@ onMounted(() => {
 .collapse-btn i { font-size: 18px; min-width: 18px; text-align: center;}
 .menu-label { font-size: 10px; font-weight: 700; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 10px; padding-left: 25px; white-space: nowrap; transition: opacity 0.3s; flex-shrink: 0; }
 
-.sidebar-nav { padding: 0 15px; display: flex; flex-direction: column; gap: 4px; flex: 1; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; -ms-overflow-style: none; }
+.sidebar-nav { 
+    padding: 0 15px; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: flex-start !important; 
+    gap: 4px; 
+    flex: 1; 
+    overflow-y: auto; 
+    overflow-x: hidden; 
+    scrollbar-width: none; 
+    -ms-overflow-style: none; 
+}
+
 .sidebar-nav::-webkit-scrollbar { display: none; } 
 .nav-item { 
     display: flex; 

@@ -185,145 +185,148 @@ onUnmounted(() => {
 <template>
     <Head title="Admin Login - Portofolio" />
     
-    <div class="mesh">
-        <div class="blob b1"></div>
-        <div class="blob b2"></div>
-    </div>
-    <div class="noise"></div>
-
-    <div class="card">
-        <div class="titlebar">
-            <span class="titlebar-label">Yanzewty-Admin</span>
-
-            <Link href="/" class="inside-back-btn" title="Kembali ke Portofolio">
-                <i class="fas fa-arrow-left"></i> Kembali
-            </Link>
+    <!-- Wrapper utama (kunci agar tidak bergeser) -->
+    <div class="login-wrapper">
+        <div class="mesh">
+            <div class="blob b1"></div>
+            <div class="blob b2"></div>
         </div>
+        <div class="noise"></div>
 
-        <div class="content">
-            <!-- PANEL KIRI -->
-            <aside class="brand-panel">
-                <div class="brand-blob bb1"></div>
-                <div class="brand-blob bb2"></div>
-                <div class="comet comet-1"></div>
-                <div class="comet comet-2"></div>
+        <div class="card">
+            <div class="titlebar">
+                <span class="titlebar-label">Alfiansyah-Admin</span>
 
-                <div class="brand-top">
-                    <div class="logo-mark">
-                        <div class="logo-icon">Y</div>
-                        <span class="logo-text">Yanzewty</span>
+                <Link href="/" class="inside-back-btn" title="Kembali ke Portofolio">
+                    <i class="fas fa-arrow-left"></i> Kembali
+                </Link>
+            </div>
+
+            <div class="content">
+                <!-- PANEL KIRI -->
+                <aside class="brand-panel">
+                    <div class="brand-blob bb1"></div>
+                    <div class="brand-blob bb2"></div>
+                    <div class="comet comet-1"></div>
+                    <div class="comet comet-2"></div>
+
+                    <div class="brand-top">
+                        <div class="logo-mark">
+                            <div class="logo-icon">A</div>
+                            <span class="logo-text">Alfiansyah</span>
+                        </div>
+                        <div class="badge-pill">
+                            <i class="fas fa-shield-alt"></i> Akses Admin
+                        </div>
                     </div>
-                    <div class="badge-pill">
-                        <i class="fas fa-shield-alt"></i> Akses Admin
+
+                    <div class="brand-bottom">
+                        <h1 class="brand-headline">
+                            Kelola karya. <br>
+                            <span class="accent-text">Kendalikan cerita.</span>
+                        </h1>
+                        <p class="brand-sub">Masuk ke panel admin untuk mengatur seluruh konten portofolio.</p>
                     </div>
-                </div>
+                </aside>
 
-                <div class="brand-bottom">
-                    <h1 class="brand-headline">
-                        Kelola karya. <br>
-                        <span class="accent-text">Kendalikan cerita.</span>
-                    </h1>
-                    <p class="brand-sub">Masuk ke panel admin untuk mengatur seluruh konten portofolio.</p>
-                </div>
-            </aside>
+                <!-- PANEL KANAN -->
+                <div class="form-panel">
+                    <div class="body">
+                        <h2>Admin Login</h2>
+                        <p class="sub">silakan masuk untuk mengelola portofolio</p>
 
-            <!-- PANEL KANAN -->
-            <div class="form-panel">
-                <div class="body">
-                    <h2>Admin Login</h2>
-                    <p class="sub">silakan masuk untuk mengelola portofolio</p>
-
-                    <div 
-                        class="mode-switch-wrap"
-                        @mousedown="startDrag"
-                        @mousemove="onDrag"
-                        @mouseup="stopDrag"
-                        @mouseleave="stopDrag"
-                        @touchstart="startDrag"
-                        @touchmove="onDrag"
-                        @touchend="stopDrag"
-                    >
-                        <div class="mode-slider-indicator" :class="loginMode"></div>
-                        
-                        <button 
-                            type="button" 
-                            :class="['mode-btn', { active: loginMode === 'password' }]" 
-                            @click="loginMode = 'password'; customError = '';"
+                        <div 
+                            class="mode-switch-wrap"
+                            @mousedown="startDrag"
+                            @mousemove="onDrag"
+                            @mouseup="stopDrag"
+                            @mouseleave="stopDrag"
+                            @touchstart="startDrag"
+                            @touchmove="onDrag"
+                            @touchend="stopDrag"
                         >
-                            <i class="fas fa-key"></i> Password
-                        </button>
-                        <button 
-                            type="button" 
-                            :class="['mode-btn', { active: loginMode === 'otp' }]" 
-                            @click="loginMode = 'otp'; customError = '';"
-                        >
-                            <i class="fas fa-shield-alt"></i> Kode OTP
-                        </button>
-                    </div>
-
-                    <div v-if="customError" class="error">
-                        <i class="fas fa-exclamation-circle" style="margin-top:2px"></i>
-                        <span>{{ customError }}</span>
-                    </div>
-
-                    <div v-if="$page.props.flash?.success_msg" class="success">
-                        <i class="fas fa-check-circle" style="margin-top:2px"></i>
-                        <span>{{ $page.props.flash.success_msg }}</span>
-                    </div>
-
-                    <!-- FORM PASSWORD -->
-                    <form v-if="loginMode === 'password'" @submit.prevent="submitPasswordLogin" class="form-transition">
-                        <div>
-                            <label>Email</label>
-                            <div class="input-wrap">
-                                <i class="fas fa-envelope left"></i>
-                                <input type="email" v-model="passwordForm.email" required placeholder="email@gmail.com">
-                            </div>
+                            <div class="mode-slider-indicator" :class="loginMode"></div>
+                            
+                            <button 
+                                type="button" 
+                                :class="['mode-btn', { active: loginMode === 'password' }]" 
+                                @click="loginMode = 'password'; customError = '';"
+                            >
+                                <i class="fas fa-key"></i> Password
+                            </button>
+                            <button 
+                                type="button" 
+                                :class="['mode-btn', { active: loginMode === 'otp' }]" 
+                                @click="loginMode = 'otp'; customError = '';"
+                            >
+                                <i class="fas fa-shield-alt"></i> Kode OTP
+                            </button>
                         </div>
 
-                        <div>
-                            <label>Password</label>
-                            <div class="input-wrap">
-                                <i class="fas fa-key left"></i>
-                                <input :type="showPassword ? 'text' : 'password'" v-model="passwordForm.password" required placeholder="••••••••" style="padding-right:42px;">
-                                <button type="button" class="eye-btn" @click="showPassword = !showPassword">
-                                    <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
-                                </button>
-                            </div>
+                        <div v-if="customError" class="error">
+                            <i class="fas fa-exclamation-circle" style="margin-top:2px"></i>
+                            <span>{{ customError }}</span>
                         </div>
 
-                        <button type="submit" class="submit-btn" :disabled="passwordForm.processing">
-                            <i class="fas fa-sign-in-alt"></i> 
-                            {{ passwordForm.processing ? 'Memproses...' : 'Masuk Admin' }}
-                        </button>
-                    </form>
-
-                    <!-- FORM OTP -->
-                    <form v-else @submit.prevent="submitOtpRequest" class="form-transition">
-                        <div>
-                            <label>Email Admin</label>
-                            <div class="input-wrap">
-                                <i class="fas fa-envelope left"></i>
-                                <input type="email" v-model="otpForm.email" required placeholder="email@gmail.com">
-                            </div>
+                        <div v-if="$page.props.flash?.success_msg" class="success">
+                            <i class="fas fa-check-circle" style="margin-top:2px"></i>
+                            <span>{{ $page.props.flash.success_msg }}</span>
                         </div>
 
-                        <p class="otp-hint">Sistem akan mengirimkan 6 digit kode verifikasi instan ke email terdaftar Anda.</p>
+                        <!-- FORM PASSWORD -->
+                        <form v-if="loginMode === 'password'" @submit.prevent="submitPasswordLogin" class="form-transition">
+                            <div>
+                                <label>Email</label>
+                                <div class="input-wrap">
+                                    <i class="fas fa-envelope left"></i>
+                                    <input type="email" v-model="passwordForm.email" required placeholder="email@gmail.com">
+                                </div>
+                            </div>
 
-                        <div id="recaptcha-container" class="recaptcha-wrap"></div>
+                            <div>
+                                <label>Password</label>
+                                <div class="input-wrap">
+                                    <i class="fas fa-key left"></i>
+                                    <input :type="showPassword ? 'text' : 'password'" v-model="passwordForm.password" required placeholder="••••••••" style="padding-right:42px;">
+                                    <button type="button" class="eye-btn" @click="showPassword = !showPassword">
+                                        <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                                    </button>
+                                </div>
+                            </div>
 
-                        <button type="submit" class="submit-btn" :disabled="otpForm.processing || countdown > 0">
-                            <template v-if="countdown > 0">
-                                <i class="fas fa-clock"></i> Tunggu {{ countdown }} detik...
-                            </template>
-                            <template v-else-if="otpForm.processing">
-                                <i class="fas fa-spinner fa-spin"></i> Mengirim Kode...
-                            </template>
-                            <template v-else>
-                                <i class="fas fa-paper-plane"></i> Kirim Kode OTP
-                            </template>
-                        </button>
-                    </form>
+                            <button type="submit" class="submit-btn" :disabled="passwordForm.processing">
+                                <i class="fas fa-sign-in-alt"></i> 
+                                {{ passwordForm.processing ? 'Memproses...' : 'Masuk Admin' }}
+                            </button>
+                        </form>
+
+                        <!-- FORM OTP -->
+                        <form v-else @submit.prevent="submitOtpRequest" class="form-transition">
+                            <div>
+                                <label>Email Admin</label>
+                                <div class="input-wrap">
+                                    <i class="fas fa-envelope left"></i>
+                                    <input type="email" v-model="otpForm.email" required placeholder="email@gmail.com">
+                                </div>
+                            </div>
+
+                            <p class="otp-hint">Sistem akan mengirimkan 6 digit kode verifikasi instan ke email terdaftar Anda.</p>
+
+                            <div id="recaptcha-container" class="recaptcha-wrap"></div>
+
+                            <button type="submit" class="submit-btn" :disabled="otpForm.processing || countdown > 0">
+                                <template v-if="countdown > 0">
+                                    <i class="fas fa-clock"></i> Tunggu {{ countdown }} detik...
+                                </template>
+                                <template v-else-if="otpForm.processing">
+                                    <i class="fas fa-spinner fa-spin"></i> Mengirim Kode...
+                                </template>
+                                <template v-else>
+                                    <i class="fas fa-paper-plane"></i> Kirim Kode OTP
+                                </template>
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -344,19 +347,38 @@ onUnmounted(() => {
 
 div { box-sizing: border-box; }
 
-.mesh { position:fixed; inset:0; z-index:0; overflow:hidden; background: var(--bg); }
+/* Wrapper baru pengganti position: absolute */
+.login-wrapper {
+    position: relative;
+    width: 100vw;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* Mengunci layar agar tidak bergeser */
+    background: var(--bg);
+}
+
+.mesh { position:absolute; inset:0; z-index:0; overflow:hidden; pointer-events: none; }
 .blob { position:absolute; border-radius:50%; filter:blur(70px); opacity:.10; }
 .b1 { width:380px; height:380px; background:#4C6FE0; top:-15%; right:-10%; }
 .b2 { width:320px; height:320px; background:#3A56B8; bottom:-15%; left:-10%; }
-.noise { position:fixed; inset:0; z-index:1; opacity:.02; pointer-events:none; }
+.noise { position:absolute; inset:0; z-index:1; opacity:.02; pointer-events:none; }
 
+/* CSS Card diperbarui (Hapus 'absolute', 'top', 'left', 'transform') */
 .card { 
-    position:absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-    z-index:2; width:100%; max-width:800px; 
+    position: relative;
+    z-index: 2; 
+    width: 100%; 
+    max-width: 800px; 
     background: var(--panel); 
-    border:1px solid var(--line); border-radius:20px; overflow:hidden; 
-    box-shadow:0 30px 60px -20px rgba(0,0,0,.7); 
-    color: var(--text); font-family: 'Inter', sans-serif;
+    border: 1px solid var(--line); 
+    border-radius: 20px; 
+    overflow: hidden; 
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,.7); 
+    color: var(--text); 
+    font-family: 'Inter', sans-serif;
+    margin: 20px; /* Margin cadangan untuk layar kecil */
 }
 
 .titlebar { 
@@ -375,10 +397,13 @@ div { box-sizing: border-box; }
 
 .content { display:flex; align-items:stretch; min-height: 520px; }
 
+/* Menambahkan fitur anti-select pada area panel kiri agar teks tidak terseret */
 .brand-panel {
     position: relative; width: 44%; flex-shrink: 0; overflow: hidden; padding: 40px 32px;
     display: flex; flex-direction: column; justify-content: flex-start; gap: 60px;
     background: var(--panel-alt); border-right: 1px solid var(--line);
+    user-select: none;
+    -webkit-user-select: none;
 }
 .brand-blob { position:absolute; border-radius:50%; filter:blur(80px); opacity:.12; pointer-events:none; }
 .bb1 { width:260px; height:260px; background:#4C6FE0; top:-60px; left:-60px; }
